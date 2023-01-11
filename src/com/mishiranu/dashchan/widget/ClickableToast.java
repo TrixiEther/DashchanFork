@@ -180,9 +180,26 @@ public class ClickableToast implements LifecycleObserver {
 		View toast2 = inflater.inflate(LAYOUT_ID, null);
 		TextView message1 = toast1.findViewById(android.R.id.message);
 		TextView message2 = toast2.findViewById(android.R.id.message);
-		Drawable backgroundDrawable = ResourcesCompat.getDrawable(activity.getResources(), R.drawable.clickable_toast_background, activity.getTheme());
-		TextViewCompat.setTextAppearance(message1, R.style.ClickableToastTextAppearance);
-		TextViewCompat.setTextAppearance(message2, R.style.ClickableToastTextAppearance);
+		View backgroundView = toast1;
+		Drawable backgroundDrawable;
+		if (AndroidUtils.IS_MIUI) {
+			backgroundDrawable = toast1.getBackground();
+			if (backgroundDrawable == null) {
+				View view = message1;
+				while (view != null) {
+					backgroundDrawable = view.getBackground();
+					if (backgroundDrawable != null) {
+						backgroundView = view;
+						break;
+					}
+					view = (View) view.getParent();
+				}
+			}
+		} else {
+			backgroundDrawable = ResourcesCompat.getDrawable(activity.getResources(), R.drawable.clickable_toast_background, activity.getTheme());
+			TextViewCompat.setTextAppearance(message1, R.style.ClickableToastTextAppearance);
+			TextViewCompat.setTextAppearance(message2, R.style.ClickableToastTextAppearance);
+		}
 		// Make long text to avoid minimum widths
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 100; i++) {
@@ -206,7 +223,7 @@ public class ClickableToast implements LifecycleObserver {
 		View measureView = message1;
 		while (true) {
 			View parent = (View) measureView.getParent();
-			if (parent == null || backgroundDrawable != null && measureView == toast1) {
+			if (parent == null || backgroundDrawable != null && measureView == backgroundView) {
 				break;
 			}
 			totalPadding.left += measureView.getLeft();
