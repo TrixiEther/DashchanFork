@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -806,6 +807,9 @@ public class ChanConfiguration implements Chan.Linked {
 		}
 	}
 
+	@Extendable
+	protected List<String> getSslCertificates() { return null; }
+
 	public static final class Safe {
 		private static final Board DEFAULT_BOARD = new Board();
 		private static final Captcha DEFAULT_CAPTCHA = new Captcha();
@@ -938,6 +942,12 @@ public class ChanConfiguration implements Chan.Linked {
 			}
 			return customPreference;
 		}
+
+		public List<String> obtainSslCertificates(){
+			List<String> sslCertificates = configuration.getSslCertificates();
+			return sslCertificates != null ? sslCertificates : Collections.emptyList();
+		}
+
 	}
 
 	private final Safe safe = new Safe(this);

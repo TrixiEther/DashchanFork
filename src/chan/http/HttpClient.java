@@ -6,6 +6,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Pair;
 import androidx.annotation.NonNull;
 import chan.content.Chan;
@@ -45,10 +46,15 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -67,8 +73,11 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import org.brotli.dec.BrotliInputStream;
+import chan.content.ChanManager;
 
 public class HttpClient {
 	private static final HashMap<String, String> SHORT_RESPONSE_MESSAGES = new HashMap<>();
@@ -310,7 +319,12 @@ public class HttpClient {
 	SSLSocketFactory getSSLSocketFactory(boolean verifyCertificate) {
 		synchronized (this) {
 			if (sslSocketFactory == null) {
-				sslSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+				try {
+					sslSocketFactory = createSslSocketFactoryWithExternalCertificates();
+				} catch (Exception e) {
+					Log.e("HttpClient", "Cannot create ssl socket factory with external certificates", e);
+					sslSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+				}
 				sslSocketFactory = new SSLSocketFactoryWrapper(sslSocketFactory,
 						socket -> new HandshakeSSLSocket(socket, handshakeSessions.get()));
 				if (!C.API_LOLLIPOP_MR1) {
@@ -331,6 +345,79 @@ public class HttpClient {
 			}
 			return unsafeSslSocketFactory;
 		}
+	}
+
+	private SSLSocketFactory createSslSocketFactoryWithExternalCertificates() throws Exception {
+		KeyStore certificatesStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		certificatesStore.load(null, null);
+
+		List<Certificate> sslCertificates = new ArrayList<>(getDeviceSslCertificates());
+		sslCertificates.addAll(getExternalSslCertificates());
+
+		for (int i = 0; i < sslCertificates.size(); i++) {
+			Certificate certificate = sslCertificates.get(i);
+			certificatesStore.setCertificateEntry("Certificate-" + i, certificate);
+		}
+
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		trustManagerFactory.init(certificatesStore);
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+		return sslContext.getSocketFactory();
+	}
+
+	private List<Certificate> getDeviceSslCertificates() throws Exception {
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		trustManagerFactory.init((KeyStore) null);
+		TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+
+		if (trustManagers.length != 0 && trustManagers[0] instanceof X509TrustManager) {
+			X509TrustManager deviceTrustManager = (X509TrustManager) trustManagers[0];
+			List<Certificate> deviceCertificates = Arrays.asList(deviceTrustManager.getAcceptedIssuers());
+			if(deviceCertificates.isEmpty()){
+				throw new IllegalStateException("Device certificates list is empty");
+			}
+			return deviceCertificates;
+		} else {
+			String errorMessage = String.format("Unexpected trust manager state: %s", Arrays.toString(trustManagers));
+			throw new IllegalStateException(errorMessage);
+		}
+	}
+
+	private List<Certificate> getExternalSslCertificates() throws Exception {
+		List<String> availableChansSslCertificates = getAvailableChansSslCertificates();
+		if(availableChansSslCertificates.isEmpty()){
+			return Collections.emptyList();
+		}
+		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+		Charset charset = C.API_KITKAT ? StandardCharsets.UTF_8 : Charset.forName("UTF-8");
+		List<Certificate> externalSslCertificates = new ArrayList<>();
+
+		for (String certificate : availableChansSslCertificates){
+			try {
+				Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(new ByteArrayInputStream(certificate.getBytes(charset)));
+				externalSslCertificates.addAll(certificates);
+			}
+			catch (Exception e){
+				Log.e("HttpClient", String.format("Error when generating certificate: cause: %s, certificate: %s", e.getLocalizedMessage(), certificate));
+			}
+		}
+
+		return externalSslCertificates;
+	}
+
+	private List<String> getAvailableChansSslCertificates(){
+		Iterable<Chan> availableChans = ChanManager.getInstance().getAvailableChans();
+		if(!availableChans.iterator().hasNext()) {
+			return Collections.emptyList();
+		}
+		List<String> availableChansSslCertificates = new ArrayList<>();
+
+		for (Chan chan : availableChans) {
+			availableChansSslCertificates.addAll(chan.configuration.safe().obtainSslCertificates());
+		}
+
+		return availableChansSslCertificates;
 	}
 
 	HostnameVerifier getHostnameVerifier(boolean verifyCertificate) {
