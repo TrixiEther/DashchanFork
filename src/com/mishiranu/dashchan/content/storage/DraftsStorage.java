@@ -1,24 +1,19 @@
 package com.mishiranu.dashchan.content.storage;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.util.Pair;
-import chan.content.ChanConfiguration;
-import chan.content.ChanPerformer;
-import chan.text.JsonSerial;
-import chan.text.ParseException;
-import chan.util.StringUtils;
+
 import com.mishiranu.dashchan.content.MainApplication;
 import com.mishiranu.dashchan.content.async.ReadCaptchaTask;
 import com.mishiranu.dashchan.content.model.FileHolder;
+import com.mishiranu.dashchan.ui.CaptchaForm;
 import com.mishiranu.dashchan.util.GraphicsUtils;
 import com.mishiranu.dashchan.util.Hasher;
 import com.mishiranu.dashchan.util.IOUtils;
 import com.mishiranu.dashchan.util.LruCache;
-import java.io.ByteArrayOutputStream;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +22,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import chan.content.ChanConfiguration;
+import chan.content.ChanPerformer;
+import chan.text.JsonSerial;
+import chan.text.ParseException;
+import chan.util.StringUtils;
 
 public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorage.PostDraft>,
 		List<DraftsStorage.AttachmentDraft>>> {
@@ -168,8 +170,16 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 	}
 
 	public CaptchaDraft getCaptchaDraft(String chanName) {
-		if (captchaDraft != null && captchaChanName.equals(chanName) && SystemClock.elapsedRealtime() -
-				captchaDraft.loadTime <= 5 * 60 * 1000) {
+		if (captchaDraft != null && captchaChanName.equals(chanName)) {
+			CaptchaForm.Captcha captcha = captchaDraft.captcha;
+			if (captcha != null && !captcha.hasLifetime()) {
+				long now = SystemClock.elapsedRealtime();
+				long minutesSinceCaptchaCreation = TimeUnit.MILLISECONDS.toMinutes(now - captcha.getCreationTimeMillis());
+				long maximumCaptchaDraftLifetimeMinutes = 5;
+				if (minutesSinceCaptchaCreation > maximumCaptchaDraftLifetimeMinutes) {
+					return null;
+				}
+			}
 			return captchaDraft;
 		}
 		return null;
@@ -511,19 +521,18 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 		public final ChanConfiguration.Captcha.Input loadedInput;
 		public final ChanConfiguration.Captcha.Validity loadedValidity;
 		public final String text;
-		public final Bitmap image;
+		public final CaptchaForm.Captcha captcha;
 		public final boolean large;
 		public final boolean blackAndWhite;
-		public final long loadTime;
 
 		public final String boardName;
 		public final String threadNumber;
 
 		public CaptchaDraft(String captchaType, ReadCaptchaTask.CaptchaState captchaState,
-				ChanPerformer.CaptchaData captchaData, String loadedCaptchaType,
-				ChanConfiguration.Captcha.Input loadedInput, ChanConfiguration.Captcha.Validity loadedValidity,
-				String text, Bitmap image, boolean large, boolean blackAndWhite, long loadTime,
-				String boardName, String threadNumber) {
+							ChanPerformer.CaptchaData captchaData, String loadedCaptchaType,
+							ChanConfiguration.Captcha.Input loadedInput, ChanConfiguration.Captcha.Validity loadedValidity,
+							String text, CaptchaForm.Captcha captcha, boolean large, boolean blackAndWhite,
+							String boardName, String threadNumber) {
 			this.captchaType = captchaType;
 			this.captchaState = captchaState;
 			this.captchaData = captchaData;
@@ -531,10 +540,9 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 			this.loadedInput = loadedInput;
 			this.loadedValidity = loadedValidity;
 			this.text = text;
-			this.image = image;
+			this.captcha = captcha;
 			this.large = large;
 			this.blackAndWhite = blackAndWhite;
-			this.loadTime = loadTime;
 			this.boardName = boardName;
 			this.threadNumber = threadNumber;
 		}
@@ -556,17 +564,9 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 			dest.writeString(loadedInput != null ? loadedInput.name() : null);
 			dest.writeString(loadedValidity != null ? loadedValidity.name() : null);
 			dest.writeString(text);
-			byte[] imageBytes = null;
-			if (image != null && !image.isRecycled()) {
-				// Avoid direct writing Bitmaps to Parcel to allow Parcel.marshall
-				ByteArrayOutputStream output = new ByteArrayOutputStream();
-				image.compress(Bitmap.CompressFormat.PNG, 100, output);
-				imageBytes = output.size() > 1000000 ? null : output.toByteArray();
-			}
-			dest.writeByteArray(imageBytes);
+			dest.writeParcelable(captcha, flags);
 			dest.writeInt(large ? 1 : 0);
 			dest.writeInt(blackAndWhite ? 1 : 0);
-			dest.writeLong(loadTime);
 			dest.writeString(boardName);
 			dest.writeString(threadNumber);
 		}
@@ -588,16 +588,13 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 				ChanConfiguration.Captcha.Validity loadedValidity = loadedValidityString != null
 						? ChanConfiguration.Captcha.Validity.valueOf(loadedValidityString) : null;
 				String text = source.readString();
-				byte[] imageBytes = source.createByteArray();
-				Bitmap image = imageBytes != null ? BitmapFactory
-						.decodeByteArray(imageBytes, 0, imageBytes.length) : null;
+				CaptchaForm.Captcha captcha = source.readParcelable(CaptchaForm.Captcha.class.getClassLoader());
 				boolean large = source.readInt() != 0;
 				boolean blackAndWhite = source.readInt() != 0;
-				long loadTime = source.readLong();
 				String boardName = source.readString();
 				String threadNumber = source.readString();
 				return new CaptchaDraft(captchaType, captchaState, captchaData, loadedCaptchaType, loadedInput,
-						loadedValidity, text, image, large, blackAndWhite, loadTime, boardName, threadNumber);
+						loadedValidity, text, captcha, large, blackAndWhite, boardName, threadNumber);
 			}
 
 			@Override

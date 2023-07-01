@@ -21,7 +21,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
-import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -42,17 +41,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.TextViewCompat;
 import androidx.lifecycle.ViewModelProvider;
-import chan.content.Chan;
-import chan.content.ChanConfiguration;
-import chan.content.ChanMarkup;
-import chan.content.ChanPerformer;
-import chan.text.CommentEditor;
-import chan.util.CommonUtils;
-import chan.util.StringUtils;
+
 import com.mishiranu.dashchan.C;
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.Preferences;
@@ -69,6 +63,7 @@ import com.mishiranu.dashchan.graphics.TransparentTileDrawable;
 import com.mishiranu.dashchan.media.JpegData;
 import com.mishiranu.dashchan.media.PngData;
 import com.mishiranu.dashchan.ui.CaptchaForm;
+import com.mishiranu.dashchan.ui.CaptchaOptionsDialog;
 import com.mishiranu.dashchan.ui.ContentFragment;
 import com.mishiranu.dashchan.ui.FragmentHandler;
 import com.mishiranu.dashchan.ui.posting.dialog.AttachmentOptionsDialog;
@@ -79,7 +74,6 @@ import com.mishiranu.dashchan.ui.posting.text.CommentEditWatcher;
 import com.mishiranu.dashchan.ui.posting.text.MarkupButtonProvider;
 import com.mishiranu.dashchan.ui.posting.text.NameEditWatcher;
 import com.mishiranu.dashchan.ui.posting.text.QuoteEditWatcher;
-import com.mishiranu.dashchan.util.CaptchaUtils;
 import com.mishiranu.dashchan.util.ConcurrentUtils;
 import com.mishiranu.dashchan.util.GraphicsUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
@@ -90,14 +84,24 @@ import com.mishiranu.dashchan.widget.ExpandedLayout;
 import com.mishiranu.dashchan.widget.ProgressDialog;
 import com.mishiranu.dashchan.widget.ThemeEngine;
 import com.mishiranu.dashchan.widget.ViewFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import chan.content.Chan;
+import chan.content.ChanConfiguration;
+import chan.content.ChanMarkup;
+import chan.content.ChanPerformer;
+import chan.text.CommentEditor;
+import chan.util.CommonUtils;
+import chan.util.DataFile;
+import chan.util.StringUtils;
+
 public class PostingFragment extends ContentFragment implements FragmentHandler.Callback, CaptchaForm.Callback,
-		ReadCaptchaTask.Callback, PostingDialogCallback {
+		ReadCaptchaTask.Callback, PostingDialogCallback, CaptchaOptionsDialog.Callback {
 	private static final String EXTRA_CHAN_NAME = "chanName";
 	private static final String EXTRA_BOARD_NAME = "boardName";
 	private static final String EXTRA_THREAD_NUMBER = "threadNumber";
@@ -152,10 +156,10 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 	private String loadedCaptchaType;
 	private ChanConfiguration.Captcha.Input loadedCaptchaInput;
 	private ChanConfiguration.Captcha.Validity loadedCaptchaValidity;
-	private Bitmap captchaImage;
+	private CaptchaForm.Captcha captcha;
 	private boolean captchaLarge;
 	private boolean captchaBlackAndWhite;
-	private long captchaLoadTime;
+	private int captchaLifetimeSeconds;
 
 	private ScrollView scrollView;
 	private EditText commentView;
@@ -180,6 +184,8 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 
 	private boolean allowDialog = true;
 	private boolean sendButtonEnabled = true;
+
+	private boolean refreshCaptchaWhenLifetimeEnd;
 
 	private PostingService.Binder postingBinder;
 	private final ServiceConnection postingConnection = new ServiceConnection() {
@@ -339,9 +345,11 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 			typedArray.recycle();
 			ViewUtils.setNewMargin(captchaInputView, (int) (8f * density), null, (int) (8f * density), null);
 		}
-		ChanConfiguration.Captcha captcha = chan.configuration.safe().obtainCaptcha(captchaType);
+		ChanConfiguration.Captcha captchaConfiguration = chan.configuration.safe().obtainCaptcha(captchaType);
 		captchaForm = new CaptchaForm(this, true, !longFooter,
-				footerContainer, captchaInputParentView, captchaInputView, captcha);
+				footerContainer, captchaInputParentView, captchaInputView, captchaConfiguration);
+		captchaLifetimeSeconds = captchaConfiguration.ttl;
+		refreshCaptchaWhenLifetimeEnd = Preferences.isCaptchaAutoReload();
 		if (C.API_LOLLIPOP) {
 			float maxTranslationZ = (int) (2f * density);
 			sendButton = new Button(captchaInputParentView.getContext(), null, 0, C.API_MARSHMALLOW
@@ -464,9 +472,8 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 		if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_CAPTCHA_DRAFT)) {
 			DraftsStorage.CaptchaDraft captchaDraft = savedInstanceState.getParcelable(EXTRA_CAPTCHA_DRAFT);
 			if (captchaDraft.captchaState != null) {
-				captchaLoadTime = captchaDraft.loadTime;
 				showCaptcha(captchaDraft.captchaState, captchaDraft.captchaData, captchaDraft.loadedCaptchaType,
-						captchaDraft.loadedInput, captchaDraft.loadedValidity, captchaDraft.image,
+						captchaDraft.loadedInput, captchaDraft.loadedValidity, captchaDraft.captcha,
 						captchaDraft.large, captchaDraft.blackAndWhite);
 				captchaForm.setText(captchaDraft.text);
 				captchaRestoreSuccess = true;
@@ -474,8 +481,8 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 		} else {
 			DraftsStorage.CaptchaDraft captchaDraft = draftsStorage.getCaptchaDraft(getChanName());
 			if (captchaDraft != null && captchaDraft.loadedCaptchaType == null) {
-				captchaLoadTime = captchaDraft.loadTime;
-				ChanConfiguration.Captcha.Validity captchaValidity = captcha.validity;
+				ChanConfiguration.Captcha.Validity captchaValidity = captchaConfiguration.validity;
+
 				if (captchaValidity == null) {
 					captchaValidity = ChanConfiguration.Captcha.Validity.SHORT_LIFETIME;
 				}
@@ -487,10 +494,14 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 						captchaValidity = loadedCaptchaValidity;
 					}
 				}
+
+				CaptchaForm.Captcha captchaFromDraft = captchaDraft.captcha;
+				boolean captchaFromDraftHasLifetime = captchaFromDraft != null && captchaFromDraft.hasLifetime();
 				boolean canLoadState = false;
+
 				switch (captchaValidity) {
 					case SHORT_LIFETIME: {
-						canLoadState = false;
+						canLoadState = captchaFromDraftHasLifetime && captchaFromDraft.alive();
 						break;
 					}
 					case IN_THREAD: {
@@ -508,20 +519,20 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 						break;
 					}
 					case LONG_LIFETIME: {
-						canLoadState = true;
+						canLoadState = !captchaFromDraftHasLifetime || captchaFromDraft.alive();
 						break;
 					}
 				}
+
 				if (canLoadState && CommonUtils.equals(captchaType, captchaDraft.captchaType)) {
 					if (captchaDraft.captchaState == ReadCaptchaTask.CaptchaState.CAPTCHA &&
-							captchaDraft.image != null) {
+							captchaFromDraft != null) {
 						showCaptcha(ReadCaptchaTask.CaptchaState.CAPTCHA, captchaDraft.captchaData, null,
 								captchaDraft.loadedInput, captchaDraft.loadedValidity,
-								captchaDraft.image, captchaDraft.large, captchaDraft.blackAndWhite);
+								captchaFromDraft, captchaDraft.large, captchaDraft.blackAndWhite);
 						captchaForm.setText(captchaDraft.text);
 						captchaRestoreSuccess = true;
-					} else if (canLoadState && (captchaDraft.captchaState == ReadCaptchaTask.CaptchaState.SKIP
-							|| captchaDraft.captchaState == ReadCaptchaTask.CaptchaState.PASS)) {
+					} else if (captchaDraft.captchaState == ReadCaptchaTask.CaptchaState.SKIP || captchaDraft.captchaState == ReadCaptchaTask.CaptchaState.PASS) {
 						showCaptcha(captchaDraft.captchaState, captchaDraft.captchaData, null, null,
 								captchaDraft.loadedValidity, null, false, false);
 						captchaRestoreSuccess = true;
@@ -604,13 +615,12 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 		if (!captchaRestoreSuccess) {
 			refreshCaptcha(false, true, false);
 		}
-
-		CaptchaUtils.getInstance().registerCaptchaTTL(getChanName(), getBoardName(), getThreadNumber(), captcha.ttl, captchaForm);
 	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		captchaForm.onDestroyView();
 
 		if (postingBinder != null) {
 			postingBinder.unregister(postingCallback);
@@ -641,8 +651,6 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 		captchaForm = null;
 		sendButton = null;
 		attachments.clear();
-
-		CaptchaUtils.getInstance().lockCallback();
 	}
 
 	@Override
@@ -686,8 +694,8 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 	private DraftsStorage.CaptchaDraft obtainCaptchaDraft() {
 		String input = captchaForm.getInput();
 		return new DraftsStorage.CaptchaDraft(captchaType, captchaState, captchaData, loadedCaptchaType,
-				loadedCaptchaInput, loadedCaptchaValidity, input, captchaImage, captchaLarge,
-				captchaBlackAndWhite, captchaLoadTime, getBoardName(), getThreadNumber());
+				loadedCaptchaInput, loadedCaptchaValidity, input, captcha, captchaLarge,
+				captchaBlackAndWhite, getBoardName(), getThreadNumber());
 	}
 
 	@Override
@@ -748,6 +756,32 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 	}
 
 	@Override
+	public void showCaptchaOptionsDialog(CaptchaOptionsDialog dialog) {
+		dialog.show(getChildFragmentManager(), null);
+	}
+
+	@Override
+	public void attachCaptchaImageToPost(DataFile captchaImageAttachmentDataFile) {
+		FileHolder captchaImageFileHolder = FileHolder.obtain(captchaImageAttachmentDataFile);
+		if (captchaImageFileHolder != null) {
+			String captchaImageAttachmentHash = DraftsStorage.getInstance().store(captchaImageFileHolder);
+			String captchaImageAttachmentName = captchaImageFileHolder.getName();
+			addAttachment(captchaImageAttachmentHash, captchaImageAttachmentName);
+		}
+		captchaImageAttachmentDataFile.delete();
+	}
+
+	@Override
+	public CaptchaOptionsDialog.CaptchaImageDownloadParameters getCaptchaImageDownloadParameters() {
+		return new CaptchaOptionsDialog.CaptchaImageDownloadParameters(getChanName(), getBoardName(), getThreadNumber());
+	}
+
+	@Override
+	public void refreshCaptcha() {
+		onRefreshCaptcha(true);
+	}
+
+	@Override
 	public void onRefreshCaptcha(boolean forceRefresh) {
 		refreshCaptcha(forceRefresh, false, true);
 	}
@@ -755,6 +789,15 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 	@Override
 	public void onConfirmCaptcha() {
 		executeSendPost();
+	}
+
+	@Override
+	public void onCaptchaLifetimeEnded() {
+		if (refreshCaptchaWhenLifetimeEnd) {
+			onRefreshCaptcha(false);
+		} else {
+			showCaptcha(ReadCaptchaTask.CaptchaState.NEED_LOAD, null, null, null, null, null, false, false);
+		}
 	}
 
 	private static void addHeader(ViewGroup layout, int index, int textResId) {
@@ -1058,7 +1101,6 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 		}
 		boolean captchaNeedLoad = captchaState == ReadCaptchaTask.CaptchaState.MAY_LOAD ||
 				captchaState == ReadCaptchaTask.CaptchaState.MAY_LOAD_SOLVING;
-		CaptchaUtils.getInstance().clear();
 		ChanPerformer.SendPostData data = new ChanPerformer.SendPostData(getBoardName(), getThreadNumber(),
 				subject, comment, name, email, password, attachments, optionSage, optionSpoiler, optionOriginalPoster,
 				userIcon, captchaType, captchaData, captchaNeedLoad, 15000, 45000);
@@ -1184,7 +1226,7 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 				captchaState != ReadCaptchaTask.CaptchaState.MAY_LOAD_SOLVING;
 		captchaState = null;
 		loadedCaptchaType = null;
-		captchaLoadTime = 0L;
+		captcha = null;
 		updateSendButtonState();
 		captchaForm.showLoading();
 		CaptchaViewModel viewModel = new ViewModelProvider(this).get(CaptchaViewModel.class);
@@ -1202,13 +1244,9 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 
 	@Override
 	public void onReadCaptchaSuccess(ReadCaptchaTask.Result result) {
-		captchaLoadTime = SystemClock.elapsedRealtime();
 		showCaptcha(result.captchaState, result.captchaData, result.captchaType, result.input, result.validity,
-				result.image, result.large, result.blackAndWhite);
+				new CaptchaForm.Captcha(result.image, captchaLifetimeSeconds), result.large, result.blackAndWhite);
 		updatePostingConfigurationIfNeeded();
-		Chan chan = Chan.get(getChanName());
-		ChanConfiguration.Captcha captcha = chan.configuration.safe().obtainCaptcha(captchaType);
-		CaptchaUtils.getInstance().registerCaptchaTTL(getChanName(), getBoardName(), getThreadNumber(), captcha.ttl, captchaForm);
 	}
 
 	@Override
@@ -1219,32 +1257,29 @@ public class PostingFragment extends ContentFragment implements FragmentHandler.
 	}
 
 	private void showCaptcha(ReadCaptchaTask.CaptchaState captchaState, ChanPerformer.CaptchaData captchaData,
-			String captchaType, ChanConfiguration.Captcha.Input input, ChanConfiguration.Captcha.Validity validity,
-			Bitmap image, boolean large, boolean blackAndWhite) {
+							 String captchaType, ChanConfiguration.Captcha.Input input, ChanConfiguration.Captcha.Validity validity,
+							 CaptchaForm.Captcha captcha, boolean large, boolean blackAndWhite) {
 		this.captchaState = captchaState;
-		if (captchaImage != null && captchaImage != image) {
-			captchaImage.recycle();
-		}
 		this.captchaData = captchaData;
-		captchaImage = image;
+		this.captcha = captcha;
 		captchaLarge = large;
 		captchaBlackAndWhite = blackAndWhite;
 		loadedCaptchaType = captchaType;
 		if (captchaType != null) {
-			ChanConfiguration.Captcha captcha = Chan.get(getChanName()).configuration
+			ChanConfiguration.Captcha captchaConfiguration = Chan.get(getChanName()).configuration
 					.safe().obtainCaptcha(captchaType);
 			if (input == null) {
-				input = captcha.input;
+				input = captchaConfiguration.input;
 			}
 			if (validity == null) {
-				validity = captcha.validity;
+				validity = captchaConfiguration.validity;
 			}
 		}
 		loadedCaptchaInput = input;
 		loadedCaptchaValidity = validity;
 		boolean invertColors = blackAndWhite && !GraphicsUtils
 				.isLight(ResourceUtils.getColor(requireContext(), android.R.attr.colorBackground));
-		captchaForm.showCaptcha(captchaState, input, image, large, invertColors);
+		captchaForm.showCaptcha(captchaState, input, captcha, large, invertColors);
 		if (scrollView.getScrollY() + scrollView.getHeight() >= scrollView.getChildAt(0).getHeight()) {
 			scrollView.post(() -> {
 				if (scrollView != null) {

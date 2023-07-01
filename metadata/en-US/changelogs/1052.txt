@@ -1,0 +1,6 @@
+* New feature: border for user posts and replies
+* New feature: important posts can be displayed on the scrollbar on the right side
+* New feature(beta): hiding posts now removes them from threads, leaving no stubs (beta feature, unstable operation is possible)
+* New feature: the ability to save the captcha to the device
+* Improved post timer
+* Other small fixes and improvements

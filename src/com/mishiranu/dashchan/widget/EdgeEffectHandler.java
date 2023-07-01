@@ -75,11 +75,15 @@ public class EdgeEffectHandler {
 				int shift = this.shift.getEdgeEffectShift(side);
 				boolean needShift = shift != 0;
 				if (needShift) {
-					if (C.API_LOLLIPOP) {
-						int color = getColor();
-						Paint paint = shiftPaint;
-						paint.setColor(color);
-						canvas.drawRect(0, 0, width, shift, paint);
+					boolean deviceSupportsOverscrollGlow = C.API_LOLLIPOP && !C.API_S;
+					if (deviceSupportsOverscrollGlow) {
+						int overscrollGlowColor = getColor();
+						int overscrollGlowAlpha = (0xff000000 & overscrollGlowColor) >> 24;
+						if (overscrollGlowAlpha >= 0) {
+							Paint paint = shiftPaint;
+							paint.setColor(overscrollGlowColor);
+							canvas.drawRect(0, 0, width, shift, paint);
+						}
 					}
 					canvas.save();
 					canvas.translate(0, shift);

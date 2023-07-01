@@ -134,18 +134,23 @@
 
 		<item name="colorPrimarySupport">@color/color_primary_light</item>
 		<item name="colorAccentSupport">@color/color_accent_light</item>
-		<item name="colorTextError">@color/color_text_error</item>
 
+		<item name="android:textColorHighlight">@color/color_selection_light</item>
+		<item name="android:textColorLink">@color/color_text_link_light</item>
+		<item name="colorTextError">@color/color_text_error</item>
 		<item name="colorTextThread">@color/color_text_thread_light</item>
 		<item name="colorTextPost">@color/color_text_post_light</item>
 		<item name="colorTextMeta">@color/color_text_meta_light</item>
-		<item name="android:textColorHighlight">@color/color_selection_light</item>
-		<item name="android:textColorLink">@color/color_text_link_light</item>
 		<item name="colorTextQuote">@color/color_text_quote_light</item>
 		<item name="colorTextTripcode">@color/color_text_tripcode_light</item>
 		<item name="colorTextCapcode">@color/color_text_capcode_light</item>
 		<item name="colorTextClickableToast">@color/color_text_clickable_toast_light</item>
+		<item name="colorTextLikesCount">@color/color_text_likes_count_light</item>
+		<item name="colorTextDislikesCount">@color/color_text_dislikes_count_light</item>
+
 		<item name="colorPostHighlight">@color/color_highlight_light</item>
+		<item name="colorPostMarkUserPost">@color/color_post_mark_user_post_light</item>
+		<item name="colorPostMarkReply">@color/color_post_mark_reply_light</item>
 
 		<item name="colorGainFactor">0.75</item>
 
@@ -165,18 +170,23 @@
 
 		<item name="colorPrimarySupport">@color/color_primary_dark</item>
 		<item name="colorAccentSupport">@color/color_accent_dark</item>
-		<item name="colorTextError">@color/color_text_error</item>
 
+		<item name="android:textColorHighlight">@color/color_selection_dark</item>
+		<item name="android:textColorLink">@color/color_text_link_dark</item>
+		<item name="colorTextError">@color/color_text_error</item>
 		<item name="colorTextThread">@color/color_text_thread_dark</item>
 		<item name="colorTextPost">@color/color_text_post_dark</item>
 		<item name="colorTextMeta">@color/color_text_meta_dark</item>
-		<item name="android:textColorHighlight">@color/color_selection_dark</item>
-		<item name="android:textColorLink">@color/color_text_link_dark</item>
 		<item name="colorTextQuote">@color/color_text_quote_dark</item>
 		<item name="colorTextTripcode">@color/color_text_tripcode_dark</item>
 		<item name="colorTextCapcode">@color/color_text_capcode_dark</item>
 		<item name="colorTextClickableToast">@color/color_text_clickable_toast_dark</item>
+		<item name="colorTextLikesCount">@color/color_text_likes_count_dark</item>
+		<item name="colorTextDislikesCount">@color/color_text_dislikes_count_dark</item>
+
 		<item name="colorPostHighlight">@color/color_highlight_dark</item>
+		<item name="colorPostMarkUserPost">@color/color_post_mark_user_post_dark</item>
+		<item name="colorPostMarkReply">@color/color_post_mark_reply_dark</item>
 
 		<item name="colorGainFactor">1.25</item>
 
@@ -244,7 +254,7 @@
 	<style name="Widget.VoteTextLike" parent="@android:style/Widget.TextView">
 
 		<item name="android:textSize">12sp</item>
-		<item name="android:textColor">@color/color_vote_like</item>
+		<item name="android:textColor">?colorTextLikesCount</item>
 		<item name="android:tag">theme.textColor=meta</item>
 
 	</style>
@@ -252,7 +262,7 @@
 	<style name="Widget.VoteTextDislike" parent="@android:style/Widget.TextView">
 
 		<item name="android:textSize">12sp</item>
-		<item name="android:textColor">@color/color_vote_red</item>
+		<item name="android:textColor">?colorTextDislikesCount</item>
 		<item name="android:tag">theme.textColor=meta</item>
 
 	</style>

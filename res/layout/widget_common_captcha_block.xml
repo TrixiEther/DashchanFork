@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/captcha_block_parent"
-	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
-	android:foreground="?android:attr/selectableItemBackground"
-	tools:ignore="Overdraw">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/captcha_block_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    tools:ignore="Overdraw">
 
-	<RelativeLayout
-		android:id="@+id/captcha_block"
-		android:layout_width="match_parent"
-		android:layout_height="0dp">
+    <FrameLayout
+        android:id="@+id/captcha_block"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
 
-		<ImageView
-			android:id="@+id/captcha_image"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_centerInParent="true"
-			android:scaleType="fitCenter"
-			tools:ignore="ContentDescription" />
+        <ImageView
+            android:id="@+id/captcha_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            tools:ignore="ContentDescription" />
 
-		<ProgressBar
-			android:id="@+id/captcha_loading"
-			style="?android:attr/progressBarStyle"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_centerInParent="true"
-			android:indeterminate="true" />
+        <ProgressBar
+            android:id="@+id/captcha_loading"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
 
-		<TextView
-			android:id="@+id/captcha_ttl"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentEnd="true"
-			android:layout_alignParentRight="true"
-			android:layout_alignParentBottom="true"
-			android:textColor="@color/captcha_ttl"
-			android:textSize="24sp" />
+        <TextView
+            android:id="@+id/captcha_lifetime_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:background="@color/background_captcha_lifetime_timer"
+            android:padding="@dimen/captcha_lifetime_timer_text_padding"
+            android:textColor="@color/color_text_captcha_lifetime_timer"
+            android:textSize="@dimen/captcha_lifetime_timer_text_size"
+            android:visibility="gone" />
 
-	</RelativeLayout>
+    </FrameLayout>
 
-	<include layout="@layout/widget_skip_captcha" />
+    <include layout="@layout/widget_skip_captcha" />
 
 </FrameLayout>

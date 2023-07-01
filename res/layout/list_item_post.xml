@@ -1,153 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.mishiranu.dashchan.widget.PostLinearLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
-	android:orientation="vertical">
+<com.mishiranu.dashchan.widget.PostLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-	<LinearLayout
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:orientation="horizontal"
-		android:gravity="center_vertical"
-		android:paddingTop="10dp"
-		android:paddingLeft="10dp"
-		android:paddingRight="10dp"
-		android:paddingBottom="4dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-		<com.mishiranu.dashchan.widget.AttachmentView
-			android:id="@+id/thumbnail"
-			android:layout_width="0dp"
-			android:layout_height="match_parent"
-			android:layout_marginEnd="6dp"
-			android:layout_marginRight="6dp" />
+        <com.mishiranu.dashchan.widget.PostBorderView
+            android:id="@+id/border"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
 
-		<com.mishiranu.dashchan.widget.LinebreakLayout
-			android:id="@+id/head"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:horizontalSpacing="4dp"
-			android:padding="2dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-			<TextView
-				android:id="@+id/index"
-				style="@style/Widget.HeaderText"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="3dp"
+                android:paddingTop="10dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp">
 
-			<TextView
-				android:id="@+id/name"
-				style="@style/Widget.HeaderText"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:ellipsize="end"
-				android:singleLine="true" />
+                <com.mishiranu.dashchan.widget.AttachmentView
+                    android:id="@+id/thumbnail"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:layout_marginRight="6dp" />
 
-			<TextView
-				android:id="@+id/number"
-				style="@style/Widget.HeaderText"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content" />
+                <com.mishiranu.dashchan.widget.LinebreakLayout
+                    android:id="@+id/head"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:horizontalSpacing="4dp"
+                    android:padding="2dp">
 
-			<TextView
-				android:id="@+id/date"
-				style="@style/Widget.HeaderText"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:ellipsize="none"
-				android:singleLine="true"
-				android:textColor="#FFFFFF" />
+                    <TextView
+                        android:id="@+id/index"
+                        style="@style/Widget.HeaderText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-			<TextView
-				android:id="@+id/attachment_info"
-				style="@style/Widget.HeaderText"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:ellipsize="end"
-				android:singleLine="true" />
+                    <TextView
+                        android:id="@+id/name"
+                        style="@style/Widget.HeaderText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true" />
 
-		</com.mishiranu.dashchan.widget.LinebreakLayout>
+                    <TextView
+                        android:id="@+id/number"
+                        style="@style/Widget.HeaderText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
-	</LinearLayout>
+                    <TextView
+                        android:id="@+id/date"
+                        style="@style/Widget.HeaderText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="none"
+                        android:singleLine="true"
+                        android:textColor="#FFFFFF" />
 
-	<com.mishiranu.dashchan.widget.CarryLayout
-		android:id="@+id/attachments"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:paddingTop="4dp"
-		android:paddingLeft="10dp"
-		android:paddingRight="10dp"
-		android:paddingBottom="4dp"
-		android:horizontalSpacing="6dp"
-		android:verticalSpacing="10dp" >
+                    <TextView
+                        android:id="@+id/attachment_info"
+                        style="@style/Widget.HeaderText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true" />
 
-	</com.mishiranu.dashchan.widget.CarryLayout>
+                </com.mishiranu.dashchan.widget.LinebreakLayout>
 
+            </LinearLayout>
 
-	<com.mishiranu.dashchan.widget.LinebreakLayout
-		android:id="@+id/voting"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:horizontalSpacing="4dp"
-		android:paddingLeft="10dp"
-		android:paddingTop="4dp"
-		android:paddingRight="10dp"
-		android:paddingBottom="4dp">
+            <com.mishiranu.dashchan.widget.CarryLayout
+                android:id="@+id/attachments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:horizontalSpacing="6dp"
+                android:paddingLeft="3dp"
+                android:paddingTop="4dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp"
+                android:verticalSpacing="10dp">
 
-	</com.mishiranu.dashchan.widget.LinebreakLayout>
+            </com.mishiranu.dashchan.widget.CarryLayout>
 
-	<com.mishiranu.dashchan.widget.CommentTextView
-		android:id="@+id/comment"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textColor="?attr/colorTextPost"
-		android:tag="theme.textColor=post"
-		android:textSize="12sp"
-		android:paddingTop="4dp"
-		android:paddingLeft="12dp"
-		android:paddingRight="12dp"
-		android:paddingBottom="2dp" />
+            <com.mishiranu.dashchan.widget.LinebreakLayout
+                android:id="@+id/voting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:horizontalSpacing="4dp"
+                android:paddingLeft="3dp"
+                android:paddingTop="4dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp">
 
-	<View
-		android:id="@+id/text_selection_padding"
-		android:layout_width="match_parent"
-		android:layout_height="64dp"
-		android:visibility="gone" />
+            </com.mishiranu.dashchan.widget.LinebreakLayout>
 
-	<View
-		android:id="@+id/text_bar_padding"
-		android:layout_width="match_parent"
-		android:layout_height="0dp" />
+            <com.mishiranu.dashchan.widget.CommentTextView
+                android:id="@+id/comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5dp"
+                android:paddingTop="4dp"
+                android:paddingRight="12dp"
+                android:paddingBottom="2dp"
+                android:tag="theme.textColor=post"
+                android:textColor="?attr/colorTextPost"
+                android:textSize="12sp" />
 
-	<LinearLayout
-		android:id="@+id/bottom_bar"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:orientation="horizontal"
-		android:paddingLeft="6dp"
-		android:paddingRight="6dp"
-		android:paddingBottom="4dp">
+            <View
+                android:id="@+id/text_selection_padding"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:visibility="gone" />
 
-		<TextView
-			android:id="@+id/bottom_bar_replies"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			style="@style/Widget.PostButton" />
+            <View
+                android:id="@+id/text_bar_padding"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
 
-		<TextView
-			android:id="@+id/bottom_bar_expand"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			style="@style/Widget.PostButton"
-			android:text="@string/expand" />
+            <LinearLayout
+                android:id="@+id/bottom_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingRight="6dp"
+                android:paddingBottom="4dp">
 
-		<TextView
-			android:id="@+id/bottom_bar_open_thread"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			style="@style/Widget.PostButton"
-			android:text="@string/open_thread" />
+                <TextView
+                    android:id="@+id/bottom_bar_replies"
+                    style="@style/Widget.PostButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
-	</LinearLayout>
+                <TextView
+                    android:id="@+id/bottom_bar_expand"
+                    style="@style/Widget.PostButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/expand" />
+
+                <TextView
+                    android:id="@+id/bottom_bar_open_thread"
+                    style="@style/Widget.PostButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/open_thread" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
 
 </com.mishiranu.dashchan.widget.PostLinearLayout>

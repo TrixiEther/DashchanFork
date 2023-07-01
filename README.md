@@ -1,4 +1,4 @@
-# Dashchan
+# DashchanFork
 
 Android client for imageboards.
 
@@ -20,6 +20,8 @@ Android client for imageboards.
 * Reworked ClickableToast, may fix display on some Android systems
 * Google Search now uses Google Lens
 * Added the ability to activate multi-threaded playback for videos (may improve performance)
+* Captcha timer support with automatic reload for imageboards where this is supported
+* Hiding the list of favorite threads
 
 ## Screenshots
 

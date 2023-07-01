@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -13,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import androidx.annotation.NonNull;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,6 +51,10 @@ public class PaddedRecyclerView extends RecyclerView implements EdgeEffectHandle
 
 	private long showFastScrollingStart;
 	private boolean showFastScrolling;
+
+	private int minRealThumbSize;
+	private Drawable realThumbDrawable;
+	private ImportantPostsMarksFastScrollBarDecoration importantPostsMarksFastScrollBarDecoration;
 
 	private static AttributeSet createDefaultAttributeSet(Context context) {
 		try {
@@ -130,6 +136,18 @@ public class PaddedRecyclerView extends RecyclerView implements EdgeEffectHandle
 				onDrawFastScroller(c);
 			}
 		});
+	}
+
+	private void initializeRealThumbDrawable() {
+		int realThumbDrawableColor = ResourceUtils.getColor(getContext(), android.R.attr.textColorPrimaryInverse);
+		int realThumbColorAlpha = Math.round(255 * 0.2f);
+		realThumbDrawable = new ColorDrawable(ColorUtils.setAlphaComponent(realThumbDrawableColor, realThumbColorAlpha));
+	}
+
+	public void setImportantPostsMarksFastScrollBarDecoration(ImportantPostsMarksFastScrollBarDecoration importantPostsMarksFastScrollBarDecoration) {
+		this.importantPostsMarksFastScrollBarDecoration = importantPostsMarksFastScrollBarDecoration;
+		minRealThumbSize = Math.round(ResourceUtils.obtainDensity(this));
+		initializeRealThumbDrawable();
 	}
 
 	public void setFastScrollerEnabled(boolean fastScrollerEnabled) {
@@ -378,21 +396,43 @@ public class PaddedRecyclerView extends RecyclerView implements EdgeEffectHandle
 			int height = getHeight() - top - getEdgeEffectShift(EdgeEffectHandler.Side.BOTTOM);
 			float offset = fastScrolling ? calculateOffset() : getCurrentOffset();
 			int thumbHeight = thumbDrawable.getIntrinsicHeight();
-			int thumbY = (int) ((height - thumbHeight) * offset);
-
-			boolean thumbBitmap = thumbDrawable.getCurrent() instanceof BitmapDrawable;
-			int trackTop = top + (thumbBitmap ? thumbHeight / 2 : 0);
-			int trackBottom = top + height - (thumbBitmap ? thumbHeight / 2 : 0);
-			trackDrawable.setState(fastScrolling ? STATE_PRESSED : STATE_NORMAL);
-			int trackExtra = (maxWidth - trackDrawable.getIntrinsicWidth()) / 2;
-			if (rtl) {
-				trackDrawable.setBounds(trackExtra - translateX, trackTop,
-						trackExtra + trackDrawable.getIntrinsicWidth() - translateX, trackBottom);
-			} else {
-				trackDrawable.setBounds(getWidth() - trackExtra - trackDrawable.getIntrinsicWidth() + translateX,
-						trackTop, getWidth() - trackExtra + translateX, trackBottom);
+			int realThumbHeight = 0;
+			int verticalScrollRange = computeVerticalScrollRange();
+			if (verticalScrollRange != 0) {
+				realThumbHeight = Math.max((height * height) / verticalScrollRange, minRealThumbSize);
 			}
+			boolean thumbBitmap = thumbDrawable.getCurrent() instanceof BitmapDrawable;
+			int thumbY;
+
+			boolean alignThumbCenterWithRealThumbCenter = !thumbBitmap && height != 0 && realThumbHeight != 0 && realThumbHeight <= thumbHeight;
+			if (alignThumbCenterWithRealThumbCenter) {
+				int scrollPositionOnTrack = Math.round(height * offset);
+				float scrollPercentToMid = scrollPositionOnTrack / (height / 2f);
+				int realThumbCenter = realThumbHeight / 2;
+				int realThumbCenterOffset = Math.round(realThumbCenter - (realThumbCenter * scrollPercentToMid));
+				int thumbYMin = 0;
+				int thumbYMax = height - thumbHeight;
+				thumbY = Math.max(thumbYMin, Math.min(thumbYMax, scrollPositionOnTrack - (thumbHeight / 2) + realThumbCenterOffset));
+			} else {
+				thumbY = (int) ((height - thumbHeight) * offset);
+			}
+
+			int trackExtra = (maxWidth - trackDrawable.getIntrinsicWidth()) / 2;
+			int trackLeft;
+			int trackTop = top + (thumbBitmap ? thumbHeight / 2 : 0);
+			int trackRight;
+			int trackBottom = top + height - (thumbBitmap ? thumbHeight / 2 : 0);
+			if (rtl) {
+				trackLeft = trackExtra - translateX;
+				trackRight = trackExtra + trackDrawable.getIntrinsicWidth() - translateX;
+			} else {
+				trackLeft = getWidth() - trackExtra - trackDrawable.getIntrinsicWidth() + translateX;
+				trackRight = getWidth() - trackExtra + translateX;
+			}
+			trackDrawable.setState(fastScrolling ? STATE_PRESSED : STATE_NORMAL);
+			trackDrawable.setBounds(trackLeft, trackTop, trackRight, trackBottom);
 			trackDrawable.draw(canvas);
+
 			int thumbExtra = (maxWidth - thumbDrawable.getIntrinsicWidth()) / 2;
 			thumbDrawable.setState(fastScrolling ? STATE_PRESSED : STATE_NORMAL);
 			if (rtl) {
@@ -403,6 +443,24 @@ public class PaddedRecyclerView extends RecyclerView implements EdgeEffectHandle
 						top + thumbY, getWidth() - thumbExtra + translateX, top + thumbY + thumbHeight);
 			}
 			thumbDrawable.draw(canvas);
+
+			boolean drawImportantPostsMarks = importantPostsMarksFastScrollBarDecoration != null && importantPostsMarksFastScrollBarDecoration.hasMarks();
+			if (drawImportantPostsMarks) {
+				importantPostsMarksFastScrollBarDecoration.draw(trackLeft, trackTop, trackRight, trackBottom, canvas);
+
+				boolean drawRealThumb = realThumbHeight <= thumbHeight * 0.2;
+				if (drawRealThumb) {
+					int realThumbTop;
+					if (!thumbBitmap) {
+						realThumbTop = Math.round((height - realThumbHeight) * offset) + top;
+					} else {
+						realThumbTop = (thumbY + thumbDrawable.getIntrinsicHeight() / 2) - realThumbHeight / 2;
+					}
+					int realThumbBottom = realThumbTop + realThumbHeight;
+					realThumbDrawable.setBounds(trackLeft, realThumbTop, trackRight, realThumbBottom);
+					realThumbDrawable.draw(canvas);
+				}
+			}
 		}
 
 		if (shouldInvalidate) {

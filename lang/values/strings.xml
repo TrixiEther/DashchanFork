@@ -57,7 +57,7 @@
 	<string name="captcha_solving_info__sentence">Antigate API-compatible services are supported.</string>
 	<string name="captcha_type">Captcha type</string>
 	<string name="captcha_show_ttl">Show captcha timer</string>
-	<string name="captcha_show_ttl__summary">It is recommended to enable "Big captcha" for display. The function will offer to reload the captcha after the expiration date</string>
+	<string name="captcha_show_ttl__summary">\"Huge captcha\" is required</string>
 	<string name="captcha_reload_automatically">Auto-reload captcha</string>
 	<string name="captcha_reload_automatically__summary">Automatically reload captcha when timer expires</string>
 	<string name="cards">Cards</string>
@@ -444,6 +444,7 @@
 	<string name="show">Show</string>
 	<string name="show_download_configuration_dialog">Show download configuration dialog</string>
 	<string name="show_on_map">Show on map</string>
+	<string name="show_important_posts_on_fastscroll_bar">Show important posts on scrollbar</string>
 	<string name="show_thumbnail">Show thumbnail</string>
 	<string name="similar_posts">Similar posts</string>
 	<string name="similar_to_number__format">Similar to %s</string>

@@ -563,6 +563,12 @@
 			"name": "3.1.4-experimental-1.6",
 			"date": "29.04.2023",
 			"changelog": true
+		},
+		{
+			"code": 1052,
+			"name": "3.1.4-experimental-1.6.1",
+			"date": "01.07.2023",
+			"changelog": true
 		}
 	]
 }

@@ -4,19 +4,22 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
-import chan.content.ChanMarkup;
+
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.Preferences;
 import com.mishiranu.dashchan.ui.FragmentHandler;
 import com.mishiranu.dashchan.ui.InstanceDialog;
+import com.mishiranu.dashchan.ui.preference.core.CheckPreference;
 import com.mishiranu.dashchan.ui.preference.core.PreferenceFragment;
 import com.mishiranu.dashchan.util.IOUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
 import com.mishiranu.dashchan.util.SharedPreferences;
+
+import chan.content.ChanMarkup;
 
 public class InterfaceFragment extends PreferenceFragment {
 	@Override
@@ -81,26 +84,27 @@ public class InterfaceFragment extends PreferenceFragment {
 				});
 		addCheck(true, Preferences.KEY_DISPLAY_ICONS, Preferences.DEFAULT_DISPLAY_ICONS,
 				R.string.display_post_icons, R.string.display_post_icons__summary);
+		addCheck(true, Preferences.KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, Preferences.DEFAULT_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, R.string.show_important_posts_on_fastscroll_bar, 0);
+		addDependency(Preferences.KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, Preferences.KEY_ACTIVE_SCROLLBAR, true);
 
 		addHeader(R.string.submission_form);
 		addCheck(true, Preferences.KEY_HIDE_PERSONAL_DATA,
 				Preferences.DEFAULT_HIDE_PERSONAL_DATA, R.string.hide_personal_data_block, 0);
 		addCheck(true, Preferences.KEY_HUGE_CAPTCHA, Preferences.DEFAULT_HUGE_CAPTCHA,
-				R.string.huge_captcha, 0).setOnAfterChangeListener(p -> {
-					findPreference(Preferences.KEY_CAPTCHA_TTL).setEnabled(p.getValue());
-					findPreference(Preferences.KEY_CAPTCHA_AUTO_RELOAD).setEnabled(p.getValue());
-		});
-		addCheck(true, Preferences.KEY_CAPTCHA_TTL, Preferences.DEFAULT_CAPTCHA_TTL,
+				R.string.huge_captcha, 0)
+				.setOnAfterChangeListener(p -> findPreference(Preferences.KEY_CAPTCHA_AUTO_RELOAD).setEnabled(captchaAutoReloadEnabled()));
+		addCheck(true, Preferences.KEY_CAPTCHA_TIMER, Preferences.DEFAULT_CAPTCHA_TIMER,
 				R.string.captcha_show_ttl, R.string.captcha_show_ttl__summary)
-				.setOnAfterChangeListener(p -> {
-					findPreference(Preferences.KEY_CAPTCHA_AUTO_RELOAD).setEnabled(p.getValue());
-				});
-		findPreference(Preferences.KEY_CAPTCHA_TTL)
-				.setEnabled((Boolean)findPreference(Preferences.KEY_HUGE_CAPTCHA).getValue());
-		addCheck(true, Preferences.KEY_CAPTCHA_AUTO_RELOAD, Preferences.DEFAULT_CAPTCHA_AUTO_RELOAD,
-				R.string.captcha_reload_automatically, R.string.captcha_reload_automatically__summary)
-				.setEnabled((Boolean)findPreference(Preferences.KEY_CAPTCHA_TTL).getValue()
-						&& (Boolean)findPreference(Preferences.KEY_HUGE_CAPTCHA).getValue());
+				.setOnAfterChangeListener(p -> findPreference(Preferences.KEY_CAPTCHA_AUTO_RELOAD).setEnabled(captchaAutoReloadEnabled()));
+		addDependency(Preferences.KEY_CAPTCHA_TIMER, Preferences.KEY_HUGE_CAPTCHA, true);
+		addCheck(true, Preferences.KEY_CAPTCHA_AUTO_RELOAD, Preferences.DEFAULT_CAPTCHA_AUTO_RELOAD, R.string.captcha_reload_automatically, R.string.captcha_reload_automatically__summary)
+				.setEnabled(captchaAutoReloadEnabled());
+	}
+
+	private boolean captchaAutoReloadEnabled() {
+		boolean hugeCaptchaEnabled = ((CheckPreference) findPreference(Preferences.KEY_HUGE_CAPTCHA)).getValue();
+		boolean captchaTimerEnabled = ((CheckPreference) findPreference(Preferences.KEY_CAPTCHA_TIMER)).getValue();
+		return hugeCaptchaEnabled && captchaTimerEnabled;
 	}
 
 	@Override

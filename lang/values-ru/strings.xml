@@ -56,7 +56,7 @@
 	<string name="captcha_solving_info__sentence">Поддерживаются совместимые с Antigate API сервисы.</string>
 	<string name="captcha_type">Тип капчи</string>
 	<string name="captcha_show_ttl">Показывать таймер капчи</string>
-	<string name="captcha_show_ttl__summary">Для отображения рекомендуется включить "Большую капчу". Функция предложит перезагрузить капчу по истечении срока действия</string>
+	<string name="captcha_show_ttl__summary">Необходима \"Большая капча\"</string>
 	<string name="captcha_reload_automatically">Авто-перезагрузка капчи</string>
 	<string name="captcha_reload_automatically__summary">Автоматически перезагружать капчу по истечению времени</string>
 	<string name="cards">Карточки</string>
@@ -462,7 +462,8 @@
 	<string name="show">Показать</string>
 	<string name="show_download_configuration_dialog">Диалог конфигурации загрузки</string>
 	<string name="show_on_map">Показать на карте</string>
-	<string name="show_thumbnail">Показать миниатюру</string>
+        <string name="show_important_posts_on_fastscroll_bar">Показывать важные сообщения на полосе прокрутки</string>
+        <string name="show_thumbnail">Показать миниатюру</string>
 	<string name="similar_posts">Похожие сообщения</string>
 	<string name="similar_to_number__format">Похожие на %s</string>
 	<string name="since_date__format">Начиная с %s</string>

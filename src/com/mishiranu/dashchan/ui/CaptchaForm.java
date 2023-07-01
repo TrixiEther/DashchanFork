@@ -2,28 +2,41 @@ package com.mishiranu.dashchan.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.SystemClock;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import chan.content.ChanConfiguration;
+
+import androidx.core.view.MarginLayoutParamsCompat;
+import androidx.core.view.ViewCompat;
+
 import com.mishiranu.dashchan.C;
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.Preferences;
 import com.mishiranu.dashchan.content.async.ReadCaptchaTask;
-import com.mishiranu.dashchan.util.CaptchaUtils;
 import com.mishiranu.dashchan.util.ConcurrentUtils;
 import com.mishiranu.dashchan.util.GraphicsUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
 import com.mishiranu.dashchan.util.ViewUtils;
 
-public class CaptchaForm implements View.OnClickListener, View.OnLongClickListener,
-		TextView.OnEditorActionListener, CaptchaUtils.Callback {
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
+import chan.content.ChanConfiguration;
+
+public class CaptchaForm implements View.OnClickListener, View.OnLongClickListener, TextView.OnEditorActionListener {
 	public enum CaptchaViewType {LOADING, IMAGE, SKIP, SKIP_LOCK, ERROR}
 
 	private final Callback callback;
@@ -37,18 +50,99 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 	private final ImageView imageView;
 	private final View inputParentView;
 	private final EditText inputView;
-	private final View cancelView;
-	private final TextView captchaTTL;
+	private final ImageView cancelView;
+	private final TextView lifetimeTimerView;
+
+	private final boolean captchaLifetimeTimerEnabled;
+	private int captchaLifetimeSeconds;
+	private Bitmap captchaImage;
 
 	private ChanConfiguration.Captcha.Input captchaInput;
 
 	public interface Callback {
 		void onRefreshCaptcha(boolean forceRefresh);
+
 		void onConfirmCaptcha();
+
+		void onCaptchaLifetimeEnded();
+
+		void showCaptchaOptionsDialog(CaptchaOptionsDialog dialog);
+	}
+
+	public static class Captcha implements Parcelable {
+		private final Bitmap image;
+		private final int lifetimeSeconds;
+		private final long creationTimeMillis;
+
+		public Captcha(Bitmap image, int lifetimeSeconds) {
+			this.image = image;
+			this.lifetimeSeconds = Math.max(0, lifetimeSeconds);
+			creationTimeMillis = SystemClock.elapsedRealtime();
+		}
+
+		protected Captcha(Parcel in) {
+			image = in.readParcelable(Bitmap.class.getClassLoader());
+			lifetimeSeconds = in.readInt();
+			creationTimeMillis = in.readLong();
+		}
+
+		public long getCreationTimeMillis() {
+			return creationTimeMillis;
+		}
+
+		public boolean alive() {
+			if (hasLifetime()) {
+				return getRemainingLifetimeSeconds() > 0;
+			} else {
+				return true;
+			}
+		}
+
+		private int getRemainingLifetimeSeconds() {
+			if (hasLifetime()) {
+				long now = SystemClock.elapsedRealtime();
+				int secondsPassedSinceCaptchaCreation = (int) TimeUnit.MILLISECONDS.toSeconds(now - creationTimeMillis);
+				return Math.max(0, lifetimeSeconds - secondsPassedSinceCaptchaCreation);
+			} else {
+				return 0;
+			}
+		}
+
+		public boolean hasLifetime() {
+			return lifetimeSeconds > 0;
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		public Bitmap getImage() {
+			return image;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeParcelable(image, flags);
+			dest.writeInt(lifetimeSeconds);
+			dest.writeLong(creationTimeMillis);
+		}
+
+		public static final Creator<Captcha> CREATOR = new Creator<Captcha>() {
+			@Override
+			public Captcha createFromParcel(Parcel in) {
+				return new Captcha(in);
+			}
+
+			@Override
+			public Captcha[] newArray(int size) {
+				return new Captcha[size];
+			}
+		};
 	}
 
 	public CaptchaForm(Callback callback, boolean hideInput, boolean applyHeight,
-			View container, View inputParentView, EditText inputView, ChanConfiguration.Captcha captcha) {
+					   View container, View inputParentView, EditText inputView, ChanConfiguration.Captcha captcha) {
 		this.callback = callback;
 		this.hideInput = hideInput;
 		this.applyHeight = applyHeight;
@@ -58,15 +152,14 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 		loadingView = container.findViewById(R.id.captcha_loading);
 		skipBlockView = container.findViewById(R.id.captcha_skip_block);
 		skipTextView = container.findViewById(R.id.captcha_skip_text);
-		captchaTTL = container.findViewById(R.id.captcha_ttl);
-		captchaTTL.setVisibility(View.GONE);
+		cancelView = container.findViewById(R.id.captcha_cancel);
+		lifetimeTimerView = container.findViewById(R.id.captcha_lifetime_timer);
+		captchaLifetimeTimerEnabled = Preferences.isHugeCaptcha() && Preferences.isCaptchaTimer();
 		this.inputParentView = inputParentView;
 		this.inputView = inputView;
 		if (hideInput) {
 			inputView.setVisibility(View.GONE);
 		}
-		ImageView cancelView = container.findViewById(R.id.captcha_cancel);
-		this.cancelView = cancelView;
 		if (C.API_LOLLIPOP) {
 			cancelView.setImageTintList(ResourceUtils.getColorStateList(cancelView.getContext(),
 					android.R.attr.textColorPrimary));
@@ -80,7 +173,7 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 			captchaInput = ChanConfiguration.Captcha.Input.ALL;
 		}
 		updateCaptchaInput(captchaInput);
-		inputView.setFilters(new InputFilter[] {new InputFilter.LengthFilter(50)});
+		inputView.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
 		inputView.setOnEditorActionListener(this);
 		cancelView.setOnClickListener(this);
 		blockParentView.setOnClickListener(this);
@@ -119,40 +212,6 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 		}
 	}
 
-	private int getBlockViewWidth() {
-		return blockView.getWidth();
-	}
-
-	/*
-		When trying to calculate the padding right away,
-		we run into the problem that the blockView can have a width of zero,
-		which causes issue in the display when the posting window is opened.
-		To avoid this problem, we perform a recalculation on a timer of 1 second
-	 */
-	private final Runnable refreshCaptchaTTLPadding = () -> {
-		if (getBlockViewWidth() != 0) {
-			calculateCaptchaTTLPadding();
-		} else {
-			queueNextCaptchaTTPPaddingUpdate();
-		}
-	};
-
-	private void queueNextCaptchaTTPPaddingUpdate() {
-		ConcurrentUtils.HANDLER.removeCallbacks(refreshCaptchaTTLPadding);
-		ConcurrentUtils.HANDLER.postDelayed(refreshCaptchaTTLPadding, 1000);
-	}
-
-	private void calculateCaptchaTTLPadding() {
-		if (imageView.getDrawable() == null)
-			return;
-		int imageViewWidth = imageView.getDrawable().getIntrinsicWidth();
-		float density = ResourceUtils.obtainDensity(imageView);
-		int calculated = blockView.getWidth() / 2 - imageViewWidth / 2
-				- (int) (96f * density) / 2;
-		captchaTTL.setPadding(0,0, calculated,0);
-		captchaTTL.setVisibility(View.VISIBLE);
-	}
-
 	@Override
 	public void onClick(View v) {
 		if (v == cancelView) {
@@ -167,14 +226,16 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				inputMethodManager.showSoftInput(inputView, InputMethodManager.SHOW_IMPLICIT);
 			}
 		}
-		CaptchaUtils.getInstance().clear();
 	}
 
 	@Override
 	public boolean onLongClick(View v) {
 		if (v == blockParentView) {
-			callback.onRefreshCaptcha(true);
-			CaptchaUtils.getInstance().clear();
+			if (captchaImage != null) {
+				callback.showCaptchaOptionsDialog(new CaptchaOptionsDialog(captchaImage));
+			} else {
+				callback.onRefreshCaptcha(true);
+			}
 			return true;
 		}
 		return false;
@@ -186,32 +247,23 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 		return true;
 	}
 
-	@Override
-	public void onTTLChange(int ttl) {
-		if (captchaTTL != null)
-			captchaTTL.setText(String.valueOf(ttl));
-	}
-
-	@Override
-	public void onCaptchaTimeout(boolean needReload) {
-		if (captchaTTL != null) {
-			if (needReload) {
-				onClick(blockParentView);
-			} else {
-				skipTextView.setText(R.string.load_captcha);
-				cancelView.setVisibility(View.GONE);
-				switchToCaptchaView(CaptchaViewType.SKIP, null, false);
-			}
-		}
-	}
-
 	public void showCaptcha(ReadCaptchaTask.CaptchaState captchaState, ChanConfiguration.Captcha.Input input,
-			Bitmap image, boolean large, boolean invertColors) {
+							Captcha captcha, boolean large, boolean invertColors) {
 		switch (captchaState) {
 			case CAPTCHA: {
-				imageView.setImageBitmap(image);
-				imageView.setColorFilter(invertColors ? GraphicsUtils.INVERT_FILTER : null);
-				switchToCaptchaView(CaptchaViewType.IMAGE, input, large);
+				if (captcha != null) {
+					if (captchaLifetimeTimerEnabled && !captcha.alive()) {
+						callback.onCaptchaLifetimeEnded();
+					} else {
+						captchaImage = captcha.image;
+						imageView.setImageBitmap(captcha.image);
+						imageView.setColorFilter(invertColors ? GraphicsUtils.INVERT_FILTER : null);
+						captchaLifetimeSeconds = captcha.getRemainingLifetimeSeconds();
+						switchToCaptchaView(CaptchaViewType.IMAGE, input, large);
+					}
+				} else {
+					showError();
+				}
 				break;
 			}
 			case NEED_LOAD:
@@ -227,14 +279,12 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				skipTextView.setText(R.string.captcha_is_not_required);
 				cancelView.setVisibility(View.VISIBLE);
 				switchToCaptchaView(CaptchaViewType.SKIP_LOCK, null, false);
-				CaptchaUtils.getInstance().clear();
 				break;
 			}
 			case PASS: {
 				skipTextView.setText(R.string.captcha_pass);
 				cancelView.setVisibility(View.VISIBLE);
 				switchToCaptchaView(CaptchaViewType.SKIP, null, false);
-				CaptchaUtils.getInstance().clear();
 				break;
 			}
 		}
@@ -252,6 +302,14 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 		switchToCaptchaView(CaptchaViewType.LOADING, null, false);
 	}
 
+	public void setText(String text) {
+		inputView.setText(text);
+	}
+
+	public String getInput() {
+		return inputView.getText().toString();
+	}
+
 	private void setInputEnabled(boolean enabled, boolean switchVisibility) {
 		inputView.setEnabled(enabled);
 		if (hideInput && switchVisibility) {
@@ -260,7 +318,13 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 	}
 
 	private void switchToCaptchaView(CaptchaViewType captchaViewType,
-			ChanConfiguration.Captcha.Input input, boolean large) {
+									 ChanConfiguration.Captcha.Input input, boolean large) {
+		if (captchaViewType != CaptchaViewType.IMAGE) {
+			hideCaptchaLifetimeTimer();
+			stopCaptchaLifetimeTimer();
+			captchaImage = null;
+		}
+
 		switch (captchaViewType) {
 			case LOADING: {
 				blockParentView.setClickable(true);
@@ -271,7 +335,6 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				skipBlockView.setVisibility(View.GONE);
 				setInputEnabled(false, false);
 				updateCaptchaHeight(false);
-				captchaTTL.setVisibility(View.GONE);
 				break;
 			}
 			case ERROR: {
@@ -282,7 +345,6 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				skipBlockView.setVisibility(View.VISIBLE);
 				setInputEnabled(false, false);
 				updateCaptchaHeight(false);
-				captchaTTL.setVisibility(View.GONE);
 				break;
 			}
 			case IMAGE: {
@@ -294,10 +356,11 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				setInputEnabled(true, true);
 				updateCaptchaInput(input != null ? input : captchaInput);
 				updateCaptchaHeight(large);
-				if (CaptchaUtils.isCaptchaTTLEnabled()) {
-					queueNextCaptchaTTPPaddingUpdate();
+				if (captchaLifetimeTimerAvailable()) {
+					startCaptchaLifetimeTimer();
+					showCaptchaLifetimeTimer();
 				} else {
-					captchaTTL.setVisibility(View.GONE);
+					hideCaptchaLifetimeTimer();
 				}
 				break;
 			}
@@ -311,17 +374,87 @@ public class CaptchaForm implements View.OnClickListener, View.OnLongClickListen
 				skipBlockView.setVisibility(View.VISIBLE);
 				setInputEnabled(false, true);
 				updateCaptchaHeight(false);
-				captchaTTL.setVisibility(View.GONE);
 				break;
 			}
 		}
 	}
 
-	public void setText(String text) {
-		inputView.setText(text);
+	private boolean captchaLifetimeTimerAvailable() {
+		return captchaLifetimeTimerEnabled && captchaLifetimeSeconds > 0 && lifetimeTimerView != null;
 	}
 
-	public String getInput() {
-		return inputView.getText().toString();
+	private void showCaptchaLifetimeTimer() {
+		if (!ViewCompat.isLaidOut(imageView)) {
+			showCaptchaLifetimeTimerWhenImageViewIsLaidOut();
+			return;
+		}
+		alignCaptchaLifetimeTimerWithCaptchaImage();
+		lifetimeTimerView.setVisibility(View.VISIBLE);
 	}
+
+	private void showCaptchaLifetimeTimerWhenImageViewIsLaidOut() {
+		imageView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				imageView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				showCaptchaLifetimeTimer();
+			}
+		});
+	}
+
+	private void alignCaptchaLifetimeTimerWithCaptchaImage() {
+		int captchaImageRealWidth = getCaptchaImageRealWidth();
+		if (captchaImageRealWidth > 0) {
+			int captchaImageViewWidth = imageView.getWidth();
+			int lifetimeTimerViewEndMargin = (captchaImageViewWidth - captchaImageRealWidth) / 2;
+			FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) lifetimeTimerView.getLayoutParams();
+			MarginLayoutParamsCompat.setMarginEnd(params, lifetimeTimerViewEndMargin);
+			lifetimeTimerView.setLayoutParams(params);
+		}
+	}
+
+	private int getCaptchaImageRealWidth() {
+		Drawable captchaImageDrawable = imageView.getDrawable();
+		if (captchaImageDrawable == null) {
+			return 0;
+		}
+
+		int captchaImageWidth = captchaImageDrawable.getIntrinsicWidth();
+		float[] imageMatrix = new float[9];
+		imageView.getImageMatrix().getValues(imageMatrix);
+
+		return Math.round(captchaImageWidth * imageMatrix[Matrix.MSCALE_X]);
+	}
+
+	private void hideCaptchaLifetimeTimer() {
+		if (lifetimeTimerView != null) {
+			lifetimeTimerView.setVisibility(View.GONE);
+		}
+	}
+
+	private final Runnable captchaLifetimeUpdateRunnable = new Runnable() {
+		@Override
+		public void run() {
+			boolean captchaAlive = captchaLifetimeSeconds > 0;
+			if (captchaAlive) {
+				lifetimeTimerView.setText(String.format(Locale.getDefault(), "%d", captchaLifetimeSeconds--));
+				ConcurrentUtils.HANDLER.postDelayed(this, 1000);
+			} else {
+				callback.onCaptchaLifetimeEnded();
+			}
+		}
+	};
+
+	public void onDestroyView() {
+		stopCaptchaLifetimeTimer();
+	}
+
+	private void startCaptchaLifetimeTimer() {
+		captchaLifetimeUpdateRunnable.run();
+	}
+
+	private void stopCaptchaLifetimeTimer() {
+		ConcurrentUtils.HANDLER.removeCallbacks(captchaLifetimeUpdateRunnable);
+	}
+
 }

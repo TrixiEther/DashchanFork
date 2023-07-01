@@ -10,7 +10,6 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.SystemClock;
 import android.text.Layout;
 import android.text.SpannableString;
@@ -27,7 +26,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.TextViewCompat;
@@ -46,6 +44,7 @@ import com.mishiranu.dashchan.content.model.PostNumber;
 import com.mishiranu.dashchan.graphics.ColorScheme;
 import com.mishiranu.dashchan.text.style.LinkSpan;
 import com.mishiranu.dashchan.text.style.LinkSuffixSpan;
+import com.mishiranu.dashchan.widget.PostBorderView;
 import com.mishiranu.dashchan.ui.gallery.GalleryOverlay;
 import com.mishiranu.dashchan.ui.posting.Replyable;
 import com.mishiranu.dashchan.util.AnimationUtils;
@@ -397,13 +396,30 @@ public class ViewUnit {
 				? postItem.getComment(chan, configurationSet.repliesToPost) : postItem.getComment(chan);
 				colorScheme.apply(postItem.getCommentSpans());
 		LinkSuffixSpan[] linkSuffixSpans = postItem.getLinkSuffixSpansAfterComment();
+
+		PostBorderView border = holder.border;
+		PostBorderView.BorderStyle borderStyle = null;
+		boolean showBorder = !configurationSet.isDialog && Preferences.isShowMyPosts();
+
+		boolean setBorderStyleUserPost = showBorder && configurationSet.postStateProvider.isUserPost(postNumber);
+		if(setBorderStyleUserPost){
+			borderStyle = PostBorderView.BorderStyle.USER_POST;
+		}
+
 		if (linkSuffixSpans != null) {
 			boolean showMyPosts = Preferences.isShowMyPosts();
 			for (LinkSuffixSpan span : linkSuffixSpans) {
-				span.setSuffix(LinkSuffixSpan.SUFFIX_USER_POST, showMyPosts &&
-						configurationSet.postStateProvider.isUserPost(span.getPostNumber()));
+				boolean showReply = showMyPosts && configurationSet.postStateProvider.isUserPost(span.getPostNumber());
+				span.setSuffix(LinkSuffixSpan.SUFFIX_USER_POST, showReply);
+
+				boolean setBorderStyleReply = showBorder && borderStyle == null && showReply;
+				if (setBorderStyleReply) {
+					borderStyle = PostBorderView.BorderStyle.REPLY;
+				}
 			}
 		}
+		border.setBorderStyle(borderStyle);
+
 		LinkSpan[] linkSpans = postItem.getLinkSpansAfterComment();
 		if (linkSpans != null) {
 			for (LinkSpan linkSpan : linkSpans) {
@@ -1259,6 +1275,7 @@ public class ViewUnit {
 
 		public final Dimensions dimensions;
 		public final PostLinearLayout layout;
+		public final PostBorderView border;
 		public final LinebreakLayout head;
 		public final LinebreakLayout voting;
 		public final TextView number;
@@ -1299,6 +1316,7 @@ public class ViewUnit {
 			layout = (PostLinearLayout) itemView;
 			layout.addOnAttachStateChangeListener(this);
 			ViewUtils.setSelectableItemBackground(layout);
+			border = itemView.findViewById(R.id.border);
 			head = itemView.findViewById(R.id.head);
 			voting = itemView.findViewById(R.id.voting);
 			number = itemView.findViewById(R.id.number);

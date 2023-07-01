@@ -19,11 +19,16 @@
 	<attr name="colorTextTripcode" format="color|reference" />
 	<attr name="colorTextCapcode" format="color|reference" />
 	<attr name="colorTextClickableToast" format="color|reference" />
-	<attr name="colorPostHighlight" format="color|reference" />
+	<attr name="colorTextLikesCount" format="color|reference" />
+	<attr name="colorTextDislikesCount" format="color|reference" />
+	<attr name="colorTextError" format="color|reference" />
 
 	<attr name="colorPrimarySupport" format="color|reference" />
 	<attr name="colorAccentSupport" format="color|reference" />
-	<attr name="colorTextError" format="color|reference" />
+
+	<attr name="colorPostHighlight" format="color|reference" />
+	<attr name="colorPostMarkUserPost" format="color|reference" />
+	<attr name="colorPostMarkReply" format="color|reference" />
 
 	<attr name="colorGainFactor" format="float" />
 

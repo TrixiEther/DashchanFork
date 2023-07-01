@@ -25,4 +25,7 @@
 	<item name="clickable_toast_horizontal_padding" type="dimen">24dp</item>
 	<item name="clickable_toast_elevation" type="dimen">2dp</item>
 
+	<item name="captcha_lifetime_timer_text_size" type="dimen">16sp</item>
+	<item name="captcha_lifetime_timer_text_padding" type="dimen">2dp</item>
+
 </resources>
