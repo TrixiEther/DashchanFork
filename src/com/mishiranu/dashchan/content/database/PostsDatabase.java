@@ -57,7 +57,7 @@ public class PostsDatabase implements CommonDatabase.Instance {
 
 	@Override
 	public void create(SQLiteDatabase database) {
-		database.execSQL("CREATE TABLE " + Schema.Posts.TABLE_NAME + " (" +
+		database.execSQL("CREATE TABLE IF NOT EXISTS " + Schema.Posts.TABLE_NAME + " (" +
 				Schema.Posts.Columns.CHAN_NAME + " TEXT NOT NULL, " +
 				Schema.Posts.Columns.BOARD_NAME + " TEXT NOT NULL, " +
 				Schema.Posts.Columns.THREAD_NUMBER + " TEXT NOT NULL, " +
@@ -77,7 +77,7 @@ public class PostsDatabase implements CommonDatabase.Instance {
 		switch (migration) {
 			case FROM_8_TO_9: {
 				// Add "posts" table
-				database.execSQL("CREATE TABLE posts (chan_name TEXT NOT NULL, " +
+				database.execSQL("CREATE TABLE IF NOT EXISTS posts (chan_name TEXT NOT NULL, " +
 						"board_name TEXT NOT NULL, thread_number TEXT NOT NULL, " +
 						"post_number_major INTEGER NOT NULL, post_number_minor INTEGER NOT NULL, " +
 						"time INTEGER NOT NULL, flags INTEGER NOT NULL DEFAULT 0, " +

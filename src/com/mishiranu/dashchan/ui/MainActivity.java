@@ -927,6 +927,7 @@ public class MainActivity extends StateActivity implements DrawerForm.Callback, 
 			case ARCHIVE:
 			case BOARDS:
 			case USER_BOARDS:
+			case BOOKMARKS:
 			case HISTORY: {
 				pair = prepareAddPage(content, chanName, boardName, null, null, null);
 				break;
@@ -1680,6 +1681,10 @@ public class MainActivity extends StateActivity implements DrawerForm.Callback, 
 					fragments.clear();
 					navigateFragment(new CategoriesFragment(), null, true);
 				}
+				break;
+			}
+			case DrawerForm.MENU_ITEM_BOOKMARKS: {
+				content = Page.Content.BOOKMARKS;
 				break;
 			}
 		}

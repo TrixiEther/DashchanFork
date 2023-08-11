@@ -117,6 +117,7 @@ public class DrawerForm extends RecyclerView.Adapter<DrawerForm.ViewHolder> impl
 	public static final int MENU_ITEM_USER_BOARDS = 2;
 	public static final int MENU_ITEM_HISTORY = 3;
 	public static final int MENU_ITEM_PREFERENCES = 4;
+	public static final int MENU_ITEM_BOOKMARKS = 5;
 
 	private enum CategoriesOrder {PAGES_FIRST, FAVORITES_FIRST, HIDE_PAGES}
 
@@ -340,12 +341,14 @@ public class DrawerForm extends RecyclerView.Adapter<DrawerForm.ViewHolder> impl
 			menu.clear();
 			Context context = this.context;
 			TypedArray typedArray = context.obtainStyledAttributes(new int[] {R.attr.iconDrawerMenuBoards,
-					R.attr.iconDrawerMenuUserBoards, R.attr.iconDrawerMenuHistory, R.attr.iconDrawerMenuPreferences});
+					R.attr.iconDrawerMenuUserBoards, R.attr.iconDrawerMenuHistory, R.attr.iconDrawerMenuPreferences, R.attr.iconDrawerMenuBookmarks});
 			boolean hasUserBoards = chan.configuration.getOption(ChanConfiguration.OPTION_READ_USER_BOARDS);
 			if (chanName != null && !chan.configuration.getOption(ChanConfiguration.OPTION_SINGLE_BOARD_MODE)) {
 				menu.add(new ListItem(ListItem.Type.MENU, MENU_ITEM_BOARDS, typedArray.getResourceId(0, 0),
 						context.getString(hasUserBoards ? R.string.general_boards : R.string.boards)));
 			}
+			menu.add(new ListItem(ListItem.Type.MENU, MENU_ITEM_BOOKMARKS, typedArray.getResourceId(4,0),
+					context.getString(R.string.bookmarks)));
 			if (chanName != null && hasUserBoards) {
 				menu.add(new ListItem(ListItem.Type.MENU, MENU_ITEM_USER_BOARDS, typedArray.getResourceId(1, 0),
 						context.getString(R.string.user_boards)));
@@ -1611,6 +1614,7 @@ public class DrawerForm extends RecyclerView.Adapter<DrawerForm.ViewHolder> impl
 				current.type != ListItem.Type.MENU && next.type == ListItem.Type.MENU ||
 				current.type == ListItem.Type.MENU && current.data == MENU_ITEM_BOARDS &&
 						(next.type != ListItem.Type.MENU || next.data != MENU_ITEM_USER_BOARDS) ||
+				current.type == ListItem.Type.MENU && current.data == MENU_ITEM_BOOKMARKS ||
 				current.type == ListItem.Type.MENU && current.data == MENU_ITEM_USER_BOARDS;
 	}
 

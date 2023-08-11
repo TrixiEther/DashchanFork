@@ -85,7 +85,7 @@ public class HistoryDatabase implements CommonDatabase.Instance {
 
 	@Override
 	public void create(SQLiteDatabase database) {
-		database.execSQL("CREATE TABLE " + Schema.History.TABLE_NAME + " (" +
+		database.execSQL("CREATE TABLE IF NOT EXISTS " + Schema.History.TABLE_NAME + " (" +
 				Schema.History.Columns.CHAN_NAME + " TEXT NOT NULL, " +
 				Schema.History.Columns.BOARD_NAME + " TEXT NOT NULL, " +
 				Schema.History.Columns.THREAD_NUMBER + " TEXT NOT NULL, " +
@@ -94,7 +94,7 @@ public class HistoryDatabase implements CommonDatabase.Instance {
 				"PRIMARY KEY (" + Schema.History.Columns.CHAN_NAME + ", " +
 				Schema.History.Columns.BOARD_NAME + ", " +
 				Schema.History.Columns.THREAD_NUMBER + "))");
-		database.execSQL("CREATE INDEX " + Schema.History.TABLE_NAME + "_order " +
+		database.execSQL("CREATE INDEX IF NOT EXISTS " + Schema.History.TABLE_NAME + "_order " +
 				"ON " + Schema.History.TABLE_NAME + " (" +
 				Schema.History.Columns.CHAN_NAME + ", " +
 				Schema.History.Columns.TIME + ")");

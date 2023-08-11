@@ -1917,6 +1917,12 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 				ListViewUtils.smoothScrollToPosition(recyclerView, position);
 				break;
 			}
+			case PERFORM_BOOKMARK_POST: {
+				Page page = getPage();
+				CommonDatabase.getInstance().getBookmarks()
+						.addBookmarkAsync(page.chanName, page.boardName, page.threadNumber, postItem.getPost());
+				break;
+			}
 		}
 	}
 

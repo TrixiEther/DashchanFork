@@ -140,6 +140,7 @@
 		<item name="iconDrawerMenuUserBoards">@drawable/ic_group</item>
 		<item name="iconDrawerMenuHistory">@drawable/ic_history</item>
 		<item name="iconDrawerMenuPreferences">@drawable/ic_settings</item>
+		<item name="iconDrawerMenuBookmarks">@drawable/ic_bookmark</item>
 
 	</style>
 
@@ -214,6 +215,7 @@
 		<item name="iconDrawerMenuUserBoards">@drawable/ic_group</item>
 		<item name="iconDrawerMenuHistory">@drawable/ic_history</item>
 		<item name="iconDrawerMenuPreferences">@drawable/ic_settings</item>
+		<item name="iconDrawerMenuBookmarks">@drawable/ic_bookmark</item>
 
 	</style>
 

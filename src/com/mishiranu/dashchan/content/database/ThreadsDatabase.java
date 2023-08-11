@@ -54,7 +54,7 @@ public class ThreadsDatabase implements CommonDatabase.Instance {
 
 	@Override
 	public void create(SQLiteDatabase database) {
-		database.execSQL("CREATE TABLE " + Schema.Threads.TABLE_NAME + " (" +
+		database.execSQL("CREATE TABLE IF NOT EXISTS " + Schema.Threads.TABLE_NAME + " (" +
 				Schema.Threads.Columns.CHAN_NAME + " TEXT NOT NULL, " +
 				Schema.Threads.Columns.BOARD_NAME + " TEXT NOT NULL, " +
 				Schema.Threads.Columns.THREAD_NUMBER + " TEXT NOT NULL, " +
@@ -72,7 +72,7 @@ public class ThreadsDatabase implements CommonDatabase.Instance {
 		switch (migration) {
 			case FROM_8_TO_9: {
 				// Change "hidden_threads" table structure and rename to "threads"
-				database.execSQL("CREATE TABLE threads (chan_name TEXT NOT NULL, board_name TEXT NOT NULL, " +
+				database.execSQL("CREATE TABLE IF NOT EXISTS threads (chan_name TEXT NOT NULL, board_name TEXT NOT NULL, " +
 						"thread_number TEXT NOT NULL, time INTEGER NOT NULL, flags INTEGER NOT NULL DEFAULT 0, " +
 						"state BLOB, extra BLOB, PRIMARY KEY (chan_name, board_name, thread_number))");
 				long time = System.currentTimeMillis();

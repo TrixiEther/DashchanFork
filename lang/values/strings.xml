@@ -569,4 +569,6 @@
 	<string name="always_rename_files">Always rename file</string>
 	<string name="new_filename">New filename</string>
 	<string name="space_after_quote">Add space after quote</string>
+	<string name="bookmarks">Bookmarks</string>
+	<string name="bookmark_post">Bookmark the post</string>
 </resources>

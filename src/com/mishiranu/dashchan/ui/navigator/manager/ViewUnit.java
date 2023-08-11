@@ -165,7 +165,7 @@ public class ViewUnit {
 	private final CommentTextView.PrepareToCopyListener prepareToCopyListener =
 			(view, text, start, end) -> InteractionUnit.getCopyReadyComment(text, start, end);
 
-	public enum ViewType {THREAD, THREAD_HIDDEN, THREAD_CARD, THREAD_CARD_HIDDEN, THREAD_CARD_CELL, POST, POST_HIDDEN}
+	public enum ViewType {THREAD, THREAD_HIDDEN, THREAD_CARD, THREAD_CARD_HIDDEN, THREAD_CARD_CELL, POST, POST_HIDDEN, BOOKMARK}
 	private enum ThreadViewType {LIST, CARD, CELL}
 
 	private final ListViewUtils.UnlimitedRecycledViewPool threadsPostsViewPool =
@@ -336,6 +336,74 @@ public class ViewUnit {
 			description = postItem.getSubjectOrComment();
 		}
 		holder.comment.setText(description);
+	}
+
+	public void bindBookmarkView(RecyclerView.ViewHolder viewHolder, PostItem postItem, UiManager.ConfigurationSet configurationSet,
+								 UiManager.DemandSet demandSet) {
+		ColorScheme colorScheme = ThemeEngine.getColorScheme(uiManager.getContext());
+		PostViewHolder holder = (PostViewHolder) viewHolder;
+		Chan chan = Chan.get(configurationSet.chanName);
+		holder.resetAnimations();
+		holder.configure(postItem, configurationSet);
+
+		PostNumber postNumber = postItem.getPostNumber();
+		holder.number.setText("#" + postNumber);
+		viewHolder.itemView.setAlpha(postItem.isDeleted() ? ALPHA_DELETED_POST : 1f);
+
+		CharSequence name = postItem.getFullName(chan);
+		colorScheme.apply(postItem.getFullNameSpans());
+		holder.date.setText(postItem.getDateTime(postDateFormatter));
+
+		String subject = postItem.getSubject();
+		CharSequence comment = configurationSet.repliesToPost != null
+				? postItem.getComment(chan, configurationSet.repliesToPost) : postItem.getComment(chan);
+		colorScheme.apply(postItem.getCommentSpans());
+		LinkSuffixSpan[] linkSuffixSpans = postItem.getLinkSuffixSpansAfterComment();
+
+		PostBorderView border = holder.border;
+		PostBorderView.BorderStyle borderStyle = null;
+		boolean showPostsBorders = !configurationSet.isDialog && Preferences.isShowPostsBorders();
+
+		holder.comment.setSpoilersEnabled(!Preferences.isShowSpoilers());
+		holder.comment.setSubjectAndComment(makeHighlightedText(demandSet.highlightText, subject),
+				makeHighlightedText(demandSet.highlightText, comment));
+		holder.comment.setVisibility(subject.length() > 0 || comment.length() > 0 ? View.VISIBLE : View.GONE);
+		holder.comment.bindSelectionPaddingView(demandSet.lastInList ? holder.textSelectionPadding : null);
+
+		handlePostViewIcons(holder);
+		handlePostViewAttachments(holder);
+		holder.index.setText(postItem.getOrdinalIndexString());
+		boolean showName = holder.thumbnail.getVisibility() == View.VISIBLE ||
+				!postItem.isUseDefaultName() && !StringUtils.isEmpty(name);
+		holder.name.setVisibility(showName ? View.VISIBLE : View.GONE);
+		boolean showIndex = postItem.getOrdinalIndex() != PostItem.ORDINAL_INDEX_NONE;
+		holder.index.setVisibility(showIndex ? View.VISIBLE : View.GONE);
+
+		boolean resetLimit = true;
+		if (configurationSet.mayCollapse && !configurationSet.postStateProvider.isExpanded(postNumber)) {
+			int maxLines = Preferences.getPostMaxLines();
+			if (maxLines > 0) {
+				resetLimit = false;
+				holder.comment.setLinesLimit(maxLines, holder.dimensions.commentAdditionalHeight);
+			}
+		}
+		if (resetLimit) {
+			holder.comment.setLinesLimit(0, 0);
+		}
+		holder.bottomBarExpand.setVisibility(View.GONE);
+		holder.invalidateBottomBar();
+
+		boolean viewsEnabled = demandSet.selection == UiManager.Selection.DISABLED;
+		holder.thumbnail.setEnabled(viewsEnabled);
+		holder.comment.setEnabled(viewsEnabled);
+		holder.head.setEnabled(viewsEnabled);
+		holder.bottomBarReplies.setEnabled(viewsEnabled);
+		holder.bottomBarReplies.setClickable(viewsEnabled);
+		holder.bottomBarExpand.setEnabled(viewsEnabled);
+		holder.bottomBarExpand.setClickable(viewsEnabled);
+		holder.bottomBarOpenThread.setEnabled(viewsEnabled);
+		holder.bottomBarOpenThread.setClickable(viewsEnabled);
+		holder.installBackground();
 	}
 
 	public void bindPostView(RecyclerView.ViewHolder viewHolder,

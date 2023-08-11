@@ -77,7 +77,8 @@ public class UiManager {
 		PERFORM_HIDE_REPLIES,
 		PERFORM_HIDE_NAME,
 		PERFORM_HIDE_SIMILAR,
-		PERFORM_GO_TO_POST
+		PERFORM_GO_TO_POST,
+		PERFORM_BOOKMARK_POST
 	}
 
 	public interface Observer {

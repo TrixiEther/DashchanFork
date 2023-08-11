@@ -587,4 +587,6 @@
 	<string name="always_rename_files">Всегда переименовывать файл</string>
 	<string name="new_filename">Новое имя файла</string>
 	<string name="space_after_quote">Добавлять пробел после цитирования</string>
+	<string name="bookmarks">Закладки</string>
+	<string name="bookmark_post">Добавить в закладки</string>
 </resources>

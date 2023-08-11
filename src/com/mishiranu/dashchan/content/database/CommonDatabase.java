@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.content.database;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.mishiranu.dashchan.content.MainApplication;
 import com.mishiranu.dashchan.util.ConcurrentUtils;
@@ -51,6 +52,7 @@ public class CommonDatabase {
 	private final HistoryDatabase historyDatabase;
 	private final ThreadsDatabase threadsDatabase;
 	private final PostsDatabase postsDatabase;
+	private final BookmarksDatabase bookmarksDatabase;
 
 	private final Helper helper;
 
@@ -70,7 +72,8 @@ public class CommonDatabase {
 		historyDatabase = new HistoryDatabase(this);
 		threadsDatabase = new ThreadsDatabase(this);
 		postsDatabase = new PostsDatabase(this);
-		helper = new Helper(Arrays.asList(historyDatabase, threadsDatabase, postsDatabase));
+		bookmarksDatabase = new BookmarksDatabase(this);
+		helper = new Helper(Arrays.asList(historyDatabase, threadsDatabase, postsDatabase, bookmarksDatabase));
 	}
 
 	public HistoryDatabase getHistory() {
@@ -83,6 +86,10 @@ public class CommonDatabase {
 
 	public PostsDatabase getPosts() {
 		return postsDatabase;
+	}
+
+	public BookmarksDatabase getBookmarks() {
+		return bookmarksDatabase;
 	}
 
 	public Cursor query(QueryCallback callback) {
@@ -271,6 +278,7 @@ public class CommonDatabase {
 		@Override
 		public void onOpen(SQLiteDatabase db) {
 			for (Instance instance : instances) {
+				instance.create(db);
 				instance.open(db);
 			}
 		}

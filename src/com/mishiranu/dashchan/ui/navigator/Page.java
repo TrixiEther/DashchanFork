@@ -7,6 +7,7 @@ import chan.util.CommonUtils;
 import com.mishiranu.dashchan.content.Preferences;
 import com.mishiranu.dashchan.ui.navigator.page.ArchivePage;
 import com.mishiranu.dashchan.ui.navigator.page.BoardsPage;
+import com.mishiranu.dashchan.ui.navigator.page.BookmarksPage;
 import com.mishiranu.dashchan.ui.navigator.page.HistoryPage;
 import com.mishiranu.dashchan.ui.navigator.page.ListPage;
 import com.mishiranu.dashchan.ui.navigator.page.PostsPage;
@@ -22,7 +23,8 @@ public final class Page implements Parcelable {
 		ARCHIVE(ArchivePage::new),
 		BOARDS(BoardsPage::new),
 		USER_BOARDS(UserBoardsPage::new),
-		HISTORY(HistoryPage::new);
+		HISTORY(HistoryPage::new),
+		BOOKMARKS(BookmarksPage::new);
 
 		private interface PageFactory {
 			ListPage newPage();

@@ -85,5 +85,6 @@
 	<attr name="iconDrawerMenuUserBoards" format="reference" />
 	<attr name="iconDrawerMenuHistory" format="reference" />
 	<attr name="iconDrawerMenuPreferences" format="reference" />
+	<attr name="iconDrawerMenuBookmarks" format="reference" />
 
 </resources>

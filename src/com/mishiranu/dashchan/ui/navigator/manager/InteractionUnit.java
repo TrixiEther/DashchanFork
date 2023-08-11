@@ -320,6 +320,7 @@ public class InteractionUnit {
 		ChanConfiguration.Board board = chan.configuration.safe().obtainBoard(postItem.getBoardName());
 		boolean postEmpty = StringUtils.isEmpty(postItem.getComment(chan).toString());
 		boolean copyText = !postEmpty;
+		boolean bookmarkPost = !postEmpty;
 		boolean shareText = !postEmpty;
 		boolean userPost = configurationSet.postStateProvider.isUserPost(postItem.getPostNumber());
 		DialogMenu dialogMenu = new DialogMenu(context);
@@ -345,6 +346,10 @@ public class InteractionUnit {
 		} else {
 			dialogMenu.add(R.string.share_link, () -> handlePostContextMenuCopy(context,
 					configurationSet.chanName, postItem, PostCopyShareAction.SHARE_LINK));
+		}
+		if (bookmarkPost) {
+			dialogMenu.add(R.string.bookmark_post, () -> uiManager
+					.sendPostItemMessage(postItem, UiManager.Message.PERFORM_BOOKMARK_POST));
 		}
 		if (!postItem.isDeleted()) {
 			if (board.allowReporting) {
