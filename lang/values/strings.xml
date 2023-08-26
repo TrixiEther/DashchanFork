@@ -97,8 +97,10 @@
 	<string name="contents">Contents</string>
 	<string name="context_menu">Context menu</string>
 	<string name="context_menu_description__sentence">Use long tap to display context menu.</string>
+	<string name="copied_to_clipboard">Copied to clipboard</string>
 	<string name="copy">Copy</string>
 	<string name="copy_email">Copy email</string>
+	<string name="copy_image">Copy image</string>
 	<string name="copy_link">Copy link</string>
 	<string name="copy_markup">Copy markup</string>
 	<string name="copy_text">Copy text</string>
@@ -120,6 +122,8 @@
 	<string name="details">Details</string>
 	<string name="disabled">Disabled</string>
 	<string name="display_hidden_threads">Display hidden threads</string>
+	<string name="display_hidden_posts">Display hidden posts</string>
+	<string name="display_hidden_posts__summary">Deactivating the feature completely removes the display of posts that was hidden</string>
 	<string name="display_post_icons">Display post icons</string>
 	<string name="display_post_icons__summary">Post icons may be available on some boards</string>
 	<string name="do_nothing">Do nothing</string>
@@ -341,6 +345,7 @@
 	<string name="password">Password</string>
 	<string name="password_for_removal">Password for removal</string>
 	<string name="password_for_removal__summary">Used when sending and removing posts</string>
+	<string name="pasted">Pasted</string>
 	<string name="pause">Pause</string>
 	<string name="pending_downloading">Pending downloading</string>
 	<string name="personal_data">Personal data</string>
@@ -385,6 +390,7 @@
 	<string name="remove_metadata">Remove metadata</string>
 	<string name="remove_rules">Remove rules</string>
 	<string name="rename">Rename</string>
+	<string name="restore_filename">Restore filename</string>
 	<string name="repeated_files_are_prohibited">Repeated files are prohibited</string>
 	<string name="replace">Replace</string>
 	<string name="replies">Replies</string>
@@ -443,8 +449,9 @@
 	<string name="share_text">Share text</string>
 	<string name="show">Show</string>
 	<string name="show_download_configuration_dialog">Show download configuration dialog</string>
-	<string name="show_on_map">Show on map</string>
 	<string name="show_important_posts_on_fastscroll_bar">Show important posts on scrollbar</string>
+	<string name="show_on_map">Show on map</string>
+	<string name="show_posts_borders">Mark my posts and replies with lines</string>
 	<string name="show_thumbnail">Show thumbnail</string>
 	<string name="similar_posts">Similar posts</string>
 	<string name="similar_to_number__format">Similar to %s</string>
@@ -554,5 +561,12 @@
 	<string name="favorites_show_all">Show all</string>
 	<string name="favorites_hide_deleted">Hide deleted</string>
 	<string name="favorites_show_deleted">Show deleted</string>
-
+	<string name="hidden_posts_count__format">Hidden posts: %1$d</string>
+	<string name="posting_media">Posting media</string>
+	<string name="always_unique_hash">Always set a unique hash</string>
+	<string name="always_clear_metadata">Always clear metadata</string>
+	<string name="always_remove_filename">Always remove filename</string>
+	<string name="always_rename_files">Always rename file</string>
+	<string name="new_filename">New filename</string>
+	<string name="space_after_quote">Add space after quote</string>
 </resources>

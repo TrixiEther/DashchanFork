@@ -75,6 +75,18 @@ public class PostItem implements AttachmentItem.Master, ChanMarkup.MarkupExtra, 
 			public int size() {
 				return map.size();
 			}
+
+			public int count(HideState state) {
+				int count = 0;
+				boolean seek = false;
+				if (state == HIDDEN)
+					seek = true;
+				for (Boolean value : map.values()) {
+					if (seek == value)
+						count++;
+				}
+				return count;
+			}
 		}
 	}
 
@@ -385,6 +397,8 @@ public class PostItem implements AttachmentItem.Master, ChanMarkup.MarkupExtra, 
 	public boolean isPosterBanned() {
 		return post.isPosterBanned();
 	}
+
+	public boolean isHidden() { return hideState.hidden; }
 
 	public enum BumpLimitState {NOT_REACHED, REACHED, NEED_COUNT}
 

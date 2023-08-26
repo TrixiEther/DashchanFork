@@ -261,6 +261,7 @@ public class ClickableToast implements LifecycleObserver {
 		linearLayout.addView(message1, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		linearLayout.addView(message2, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		((LinearLayout.LayoutParams) message1.getLayoutParams()).weight = 1f;
+		((LinearLayout.LayoutParams) message2.getLayoutParams()).gravity = Gravity.CENTER_VERTICAL;
 		linearLayout.setPadding(horizontalPadding, totalPadding.top, horizontalPadding, totalPadding.bottom);
 		if (C.API_LOLLIPOP) {
 			final Drawable finalBackgroundDrawable = backgroundDrawable;
@@ -282,7 +283,7 @@ public class ClickableToast implements LifecycleObserver {
 		message2.setBackground(null);
 		message1.setPadding(0, 0, 0, 0);
 		ViewCompat.setPaddingRelative(message2, innerPadding, 0, 0, 0);
-		message1.setSingleLine(true);
+		message1.setMaxLines(3);
 		message2.setSingleLine(true);
 		message1.setEllipsize(TextUtils.TruncateAt.END);
 		message2.setEllipsize(TextUtils.TruncateAt.END);

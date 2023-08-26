@@ -15,11 +15,13 @@ public class AttachmentHolder {
 
 	public String hash;
 	public String name;
+	public String newname;
 	public String rating;
 	public boolean optionUniqueHash = false;
 	public boolean optionRemoveMetadata = false;
 	public boolean optionRemoveFileName = false;
 	public boolean optionSpoiler = false;
+	public boolean optionCustomName = false;
 	public GraphicsUtils.Reencoding reencoding;
 
 	public AttachmentHolder(View view, TextView fileName, TextView fileSize, ImageView imageView,

@@ -77,6 +77,14 @@ public abstract class WebViewDialog extends DialogFragment {
 		webView.setWebChromeClient(new WebChromeClientWrapper(webChromeClient));
 	}
 
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		webView.stopLoading();
+		webView.setWebChromeClient(null);
+		webView.destroy();
+	}
+
 	private class WebChromeClientWrapper extends WebChromeClient {
 		private final WebChromeClient delegate;
 		private final ObjectAnimator progressBarVisibilityAnimator = ObjectAnimator.ofFloat(pageLoadingProgressBar, "alpha", 1f);

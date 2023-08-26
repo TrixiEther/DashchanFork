@@ -22,6 +22,7 @@ public class C {
 	public static final boolean API_Q = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
 	public static final boolean API_R = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
 	public static final boolean API_S = Build.VERSION.SDK_INT >= 31;
+	public static final boolean API_S_V2 = Build.VERSION.SDK_INT >= 32;
 
 	public static final boolean USE_SAF = API_MARSHMALLOW;
 

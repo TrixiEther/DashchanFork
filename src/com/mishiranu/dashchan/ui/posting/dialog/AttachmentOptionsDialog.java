@@ -5,17 +5,27 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.util.SparseBooleanArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HeaderViewListAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import chan.content.ChanConfiguration;
+import chan.util.StringUtils;
 import com.mishiranu.dashchan.C;
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.model.FileHolder;
@@ -25,6 +35,8 @@ import com.mishiranu.dashchan.ui.posting.AttachmentHolder;
 import com.mishiranu.dashchan.ui.posting.PostingDialogCallback;
 import com.mishiranu.dashchan.util.GraphicsUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
+import com.mishiranu.dashchan.widget.MaterialButton;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -33,7 +45,7 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 
 	private static final String EXTRA_ATTACHMENT_INDEX = "attachmentIndex";
 
-	private enum Type {UNIQUE_HASH, REMOVE_METADATA, REENCODE_IMAGE, REMOVE_FILE_NAME, SPOILER}
+	private enum Type {UNIQUE_HASH, REMOVE_METADATA, REENCODE_IMAGE, REMOVE_FILE_NAME, SPOILER, RENAME}
 
 	private static class OptionItem {
 		public final String title;
@@ -51,6 +63,9 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 	private final HashMap<Type, Integer> optionIndices = new HashMap<>();
 
 	private ListView listView;
+	private EditText filenameEditText;
+	private TextView extensionTextView;
+	private Button restoreButton;
 
 	public AttachmentOptionsDialog() {}
 
@@ -128,6 +143,9 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 			// noinspection UnusedAssignment
 			optionIndices.put(Type.SPOILER, index++);
 		}
+		optionItems.add(new OptionItem(getString(R.string.rename), Type.RENAME,
+				holder.optionCustomName));
+		optionIndices.put(Type.RENAME, index++);
 		ArrayList<String> items = new ArrayList<>();
 		for (OptionItem optionItem : optionItems) {
 			items.add(optionItem.title);
@@ -148,15 +166,62 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 			listView.setDividerHeight(0);
 		}
 		ItemsAdapter adapter = new ItemsAdapter(activity, resId, items);
+
+		ViewGroup nameExtensionLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.dialog_filename, listView, false);
+		listView.addFooterView(nameExtensionLayout);
 		listView.setAdapter(adapter);
+
 		for (int i = 0; i < optionItems.size(); i++) {
 			listView.setItemChecked(i, optionItems.get(i).checked);
 		}
 		listView.setOnItemClickListener(this);
+
+		filenameEditText = nameExtensionLayout.findViewById(R.id.filename);
+		filenameEditText.setText(StringUtils.removeFileExtension(holder.newname));
+		InputFilter filter = (source, start, end, dest, dstart, dend) -> {
+			for (int i = start; i < end; i++) {
+				if (!Character.isLetterOrDigit(source.charAt(i)) || Character.isSpaceChar(source.charAt(i))) {
+					return "";
+				}
+			}
+			return null;
+		};
+		filenameEditText.setFilters(new InputFilter[]{filter});
+		filenameEditText.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				holder.newname = s.toString() + "." + StringUtils.getFileExtension(holder.name);
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+			}
+		});
+		extensionTextView = nameExtensionLayout.findViewById(R.id.extension);
+		CharSequence ext = "." + StringUtils.getFileExtension(holder.name);
+		extensionTextView.setText(ext);
+		restoreButton = C.API_LOLLIPOP ? new MaterialButton(activity) : new Button(activity, null, android.R.attr.borderlessButtonStyle);
+		restoreButton.setText(R.string.restore_filename);
+		restoreButton.setOnClickListener(v -> {
+			holder.newname = holder.name;
+			filenameEditText.setText(StringUtils.removeFileExtension(holder.newname));
+		});
+		nameExtensionLayout.addView(restoreButton);
+
 		updateItemsEnabled(adapter, holder);
 		AlertDialog dialog = new AlertDialog.Builder(activity).setView(linearLayout).create();
 		dialog.setCanceledOnTouchOutside(true);
 		return dialog;
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		requireDialog().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
 	}
 
 	private void updateItemsEnabled(ItemsAdapter adapter, AttachmentHolder holder) {
@@ -167,6 +232,26 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 			adapter.setEnabled(removeMetadataIndex, allowRemoveMetadata);
 			adapter.notifyDataSetChanged();
 		}
+		String extensionFormat = ".";
+		if (holder.reencoding != null) {
+			extensionFormat += holder.reencoding.format;
+		} else {
+			extensionFormat += StringUtils.getFileExtension(holder.name);
+		}
+		extensionTextView.setText(extensionFormat);
+		Integer removeIndex = optionIndices.get(Type.REMOVE_FILE_NAME);
+		Integer renameIndex = optionIndices.get(Type.RENAME);
+		if (removeIndex != null && renameIndex != null) {
+			adapter.setEnabled(renameIndex, !holder.optionRemoveFileName);
+			adapter.notifyDataSetChanged();
+		}
+		updateFilenameElementsEnabled(holder);
+	}
+
+	private void updateFilenameElementsEnabled(AttachmentHolder holder) {
+		filenameEditText.setEnabled(holder.optionCustomName && !holder.optionRemoveFileName);
+		extensionTextView.setEnabled(holder.optionCustomName && !holder.optionRemoveFileName);
+		restoreButton.setEnabled(holder.optionCustomName && !holder.optionRemoveFileName);
 	}
 
 	@Override
@@ -200,8 +285,13 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 				holder.optionSpoiler = checked;
 				break;
 			}
+			case RENAME: {
+				holder.optionCustomName = checked;
+				break;
+			}
 		}
-		updateItemsEnabled((ItemsAdapter) listView.getAdapter(), holder);
+		updateItemsEnabled((ItemsAdapter) ((HeaderViewListAdapter) listView.getAdapter()).getWrappedAdapter(), holder);
+
 	}
 
 	public void setReencoding(GraphicsUtils.Reencoding reencoding) {
@@ -210,7 +300,7 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 		if (reencodeIndex != null) {
 			holder.reencoding = reencoding;
 			listView.setItemChecked(reencodeIndex, reencoding != null);
-			updateItemsEnabled((ItemsAdapter) listView.getAdapter(), holder);
+			updateItemsEnabled((ItemsAdapter) ((HeaderViewListAdapter) listView.getAdapter()).getWrappedAdapter(), holder);
 		}
 	}
 }

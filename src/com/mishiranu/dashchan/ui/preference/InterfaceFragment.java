@@ -44,8 +44,6 @@ public class InterfaceFragment extends PreferenceFragment {
 				R.string.crop_thumbnails, R.string.crop_thumbnails__summary);
 		addCheck(true, Preferences.KEY_ACTIVE_SCROLLBAR, Preferences.DEFAULT_ACTIVE_SCROLLBAR,
 				R.string.active_scrollbar, 0);
-		addCheck(true, Preferences.KEY_HIGHLIGHT_USER_POSTS, Preferences.DEFAULT_HIGHLIGHT_USER_POSTS,
-				R.string.highlight_user_posts, 0);
 		addCheck(true, Preferences.KEY_SCROLL_THREAD_GALLERY, Preferences.DEFAULT_SCROLL_THREAD_GALLERY,
 				R.string.scroll_thread_when_scrolling_gallery, 0);
 		addButton(R.string.themes, 0).setOnClickListener(p -> ((FragmentHandler) requireActivity())
@@ -86,10 +84,14 @@ public class InterfaceFragment extends PreferenceFragment {
 				R.string.display_post_icons, R.string.display_post_icons__summary);
 		addCheck(true, Preferences.KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, Preferences.DEFAULT_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, R.string.show_important_posts_on_fastscroll_bar, 0);
 		addDependency(Preferences.KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, Preferences.KEY_ACTIVE_SCROLLBAR, true);
-
+		addCheck(true, Preferences.KEY_SHOW_POSTS_BORDERS, Preferences.DEFAULT_SHOW_POSTS_BORDERS, R.string.show_posts_borders, 0);
+		addCheck(true, Preferences.KEY_HIGHLIGHT_USER_POSTS, Preferences.DEFAULT_HIGHLIGHT_USER_POSTS, R.string.highlight_user_posts, 0);
+		addCheck(true, Preferences.KEY_DISPLAY_HIDDEN_POSTS, Preferences.DEFAULT_DISPLAY_HIDDEN_POSTS, R.string.display_hidden_posts, R.string.display_hidden_posts__summary);
 		addHeader(R.string.submission_form);
 		addCheck(true, Preferences.KEY_HIDE_PERSONAL_DATA,
 				Preferences.DEFAULT_HIDE_PERSONAL_DATA, R.string.hide_personal_data_block, 0);
+		addCheck(true, Preferences.KEY_SPACE_AFTER_QUOTE, Preferences.DEFAULT_SPACE_AFTER_QUOTE,
+				R.string.space_after_quote, 0);
 		addCheck(true, Preferences.KEY_HUGE_CAPTCHA, Preferences.DEFAULT_HUGE_CAPTCHA,
 				R.string.huge_captcha, 0)
 				.setOnAfterChangeListener(p -> findPreference(Preferences.KEY_CAPTCHA_AUTO_RELOAD).setEnabled(captchaAutoReloadEnabled()));

@@ -97,8 +97,10 @@
 	<string name="context_menu">Контекстное меню</string>
 	<string name="context_menu_description__sentence">Используйте долгое нажатие для отображения
 		контекстного меню.</string>
+	<string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 	<string name="copy">Копировать</string>
 	<string name="copy_email">Копировать email</string>
+	<string name="copy_image">Копировать изображение</string>
 	<string name="copy_link">Копировать ссылку</string>
 	<string name="copy_markup">Копировать разметку</string>
 	<string name="copy_text">Копировать текст</string>
@@ -120,6 +122,8 @@
 	<string name="details">Подробнее</string>
 	<string name="disabled">Отключено</string>
 	<string name="display_hidden_threads">Выводить скрытые треды</string>
+	<string name="display_hidden_posts">Выводить скрытые посты</string>
+	<string name="display_hidden_posts__summary">Отключение функции полностью убирает отображение постов, которые были скрыты</string>
 	<string name="display_post_icons">Показывать иконки сообщений</string>
 	<string name="display_post_icons__summary">Иконки доступны в некоторых разделах</string>
 	<string name="do_nothing">Ничего не делать</string>
@@ -360,6 +364,7 @@
 	<string name="password">Пароль</string>
 	<string name="password_for_removal">Пароль для удаления</string>
 	<string name="password_for_removal__summary">Используется при отправке и удалении сообщений</string>
+	<string name="pasted">Вставлено</string>
 	<string name="pause">Пауза</string>
 	<string name="pending_downloading">Ожидание загрузки</string>
 	<string name="personal_data">Личные данные</string>
@@ -403,6 +408,7 @@
 	<string name="remove_metadata">Стереть метаданные</string>
 	<string name="remove_rules">Удалить правила</string>
 	<string name="rename">Переименовать</string>
+	<string name="restore_filename">Восстановить имя файла</string>
 	<string name="repeated_files_are_prohibited">Повторные файлы запрещены</string>
 	<string name="replace">Заменить</string>
 	<string name="replies">Ответы</string>
@@ -461,9 +467,10 @@
 	<string name="share_text">Отправить текст</string>
 	<string name="show">Показать</string>
 	<string name="show_download_configuration_dialog">Диалог конфигурации загрузки</string>
+	<string name="show_important_posts_on_fastscroll_bar">Показывать важные сообщения на полосе прокрутки</string>
 	<string name="show_on_map">Показать на карте</string>
-        <string name="show_important_posts_on_fastscroll_bar">Показывать важные сообщения на полосе прокрутки</string>
-        <string name="show_thumbnail">Показать миниатюру</string>
+	<string name="show_posts_borders">"Отмечать полосами мои сообщения и ответы"</string>
+	<string name="show_thumbnail">Показать миниатюру</string>
 	<string name="similar_posts">Похожие сообщения</string>
 	<string name="similar_to_number__format">Похожие на %s</string>
 	<string name="since_date__format">Начиная с %s</string>
@@ -572,5 +579,12 @@
 	<string name="favorites_show_all">Показать все</string>
 	<string name="favorites_hide_deleted">Скрыть удаленные</string>
 	<string name="favorites_show_deleted">Показать удаленные</string>
-
+	<string name="hidden_posts_count__format">Скрыто постов: %1$d</string>
+	<string name="posting_media">Постинг медиа</string>
+	<string name="always_unique_hash">Всегда выставлять уникальный хеш</string>
+	<string name="always_clear_metadata">Всегда очищать метаданные</string>
+	<string name="always_remove_filename">Всегда удалять имя файла</string>
+	<string name="always_rename_files">Всегда переименовывать файл</string>
+	<string name="new_filename">Новое имя файла</string>
+	<string name="space_after_quote">Добавлять пробел после цитирования</string>
 </resources>

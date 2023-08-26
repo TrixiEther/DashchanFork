@@ -85,7 +85,7 @@
 				android:layout_height="wrap_content"
 				android:orientation="horizontal" />
 
-			<com.mishiranu.dashchan.widget.SafePasteEditText
+			<com.mishiranu.dashchan.widget.UriPasteEditText
 				android:id="@+id/comment"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"

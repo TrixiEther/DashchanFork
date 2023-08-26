@@ -1465,12 +1465,54 @@ public class Preferences {
 		return PREFERENCES.getBoolean(KEY_SWIPE_TO_HIDE_THREAD, DEFAULT_SWIPE_TO_HIDE_THREAD);
 	}
 
+	public static final String KEY_DISPLAY_HIDDEN_POSTS = "display_hidden_posts";
+	public static final boolean DEFAULT_DISPLAY_HIDDEN_POSTS = true;
+
+	public static boolean isDisplayHiddenPostsEnabled(){
+		return PREFERENCES.getBoolean(KEY_DISPLAY_HIDDEN_POSTS, DEFAULT_DISPLAY_HIDDEN_POSTS);
+	}
+
 	public static final String KEY_FIREWALL_RESOLUTION_METHOD = "firewall_resolution_method";
 	public static final FirewallResolutionMethod DEFAULT_FIREWALL_RESOLUTION_METHOD = FirewallResolutionMethod.MANUAL;
 
 	public static FirewallResolutionMethod getFirewallResolutionMethod() {
 		return getEnumValue(KEY_FIREWALL_RESOLUTION_METHOD, FirewallResolutionMethod.values(),
 				DEFAULT_FIREWALL_RESOLUTION_METHOD, FirewallResolutionMethod.VALUE_PROVIDER);
+	}
+
+	public static final String KEY_ALWAYS_UNIQUE_HASH = "always_unique_hash";
+	public static final boolean DEFAULT_ALWAYS_UNIQUE_HASH = false;
+
+	public static boolean isAlwaysUniqueHash() {
+		return PREFERENCES.getBoolean(KEY_ALWAYS_UNIQUE_HASH, DEFAULT_ALWAYS_UNIQUE_HASH);
+	}
+
+	public static final String KEY_ALWAYS_CLEAR_METADATA = "always_clear_metadata";
+	public static final boolean DEFAULT_ALWAYS_CLEAR_METADATA = false;
+
+	public static boolean isAlwaysClearMetadata() {
+		return PREFERENCES.getBoolean(KEY_ALWAYS_CLEAR_METADATA, DEFAULT_ALWAYS_CLEAR_METADATA);
+	}
+
+	public static final String KEY_ALWAYS_REMOVE_FILENAME = "always_remove_filename";
+	public static final boolean DEFAULT_ALWAYS_REMOVE_FILENAME = false;
+
+	public static boolean isAlwaysRemoveFilename() {
+		return PREFERENCES.getBoolean(KEY_ALWAYS_REMOVE_FILENAME, DEFAULT_ALWAYS_REMOVE_FILENAME);
+	}
+
+	public static final String KEY_ALWAYS_RENAME_FILENAME = "always_rename_filename";
+	public static final boolean DEFAULT_ALWAYS_RENAME_FILENAME = false;
+
+	public static boolean isAlwaysRenameFilename() {
+		return PREFERENCES.getBoolean(KEY_ALWAYS_RENAME_FILENAME, DEFAULT_ALWAYS_RENAME_FILENAME);
+	}
+
+	public static final String KEY_FILE_NEWNAME = "file_newname";
+	public static final String DEFAULT_FILE_NEWNAME = "image";
+
+	public static final String getConfiguredFileNewname() {
+		return PREFERENCES.getString(KEY_FILE_NEWNAME, DEFAULT_FILE_NEWNAME);
 	}
 
 	public enum FirewallResolutionMethod {
@@ -1492,8 +1534,23 @@ public class Preferences {
 	public static final String KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR = "important_posts_on_fastscroll_bar";
 	public static final boolean DEFAULT_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR = true;
 
-	public static boolean isShowImportantPostsOnFastScrollBar(){
+	public static boolean isShowImportantPostsOnFastScrollBar() {
 		return PREFERENCES.getBoolean(KEY_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR, DEFAULT_SHOW_IMPORTANT_POSTS_ON_FASTSCROLL_BAR);
 	}
+
+	public static final String KEY_SHOW_POSTS_BORDERS = "posts_borders";
+	public static final boolean DEFAULT_SHOW_POSTS_BORDERS = true;
+
+	public static boolean isShowPostsBorders() {
+		return PREFERENCES.getBoolean(KEY_SHOW_POSTS_BORDERS, DEFAULT_SHOW_POSTS_BORDERS);
+	}
+
+	public static final String KEY_SPACE_AFTER_QUOTE = "space_after_quote";
+	public static final boolean DEFAULT_SPACE_AFTER_QUOTE = true;
+
+	public static boolean isAddSpaceAfterQuote() {
+		return PREFERENCES.getBoolean(KEY_SPACE_AFTER_QUOTE, DEFAULT_SPACE_AFTER_QUOTE);
+	}
+
 
 }

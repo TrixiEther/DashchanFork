@@ -15,6 +15,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import androidx.annotation.StringRes;
+import androidx.core.util.Consumer;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
@@ -22,6 +24,7 @@ import chan.content.Chan;
 import chan.util.StringUtils;
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.CacheManager;
+import com.mishiranu.dashchan.content.FileUriClipboard;
 import com.mishiranu.dashchan.content.ImageLoader;
 import com.mishiranu.dashchan.content.NetworkObserver;
 import com.mishiranu.dashchan.content.Preferences;
@@ -192,16 +195,18 @@ public class PagerUnit implements PagerInstance.Callback {
 		public final boolean viewMetadata;
 		public final boolean searchImage;
 		public final boolean navigatePost;
+		public final boolean copyImage;
 		public final boolean shareFile;
 
 		public OptionsMenuCapabilities(boolean available, boolean save, boolean refresh, boolean viewMetadata,
-				boolean searchImage, boolean navigatePost, boolean shareFile) {
+									   boolean searchImage, boolean copyImage, boolean navigatePost, boolean shareFile) {
 			this.available = available;
 			this.save = save;
 			this.refresh = refresh;
 			this.viewMetadata = viewMetadata;
 			this.searchImage = searchImage;
 			this.navigatePost = navigatePost;
+			this.copyImage = copyImage;
 			this.shareFile = shareFile;
 		}
 	}
@@ -213,6 +218,7 @@ public class PagerUnit implements PagerInstance.Callback {
 		boolean refresh = false;
 		boolean viewMetadata = false;
 		boolean searchImage = false;
+		boolean copyImage = false;
 		boolean navigatePost = false;
 		boolean shareFile = false;
 		if (holder != null) {
@@ -228,11 +234,12 @@ public class PagerUnit implements PagerInstance.Callback {
 			refresh = !isVideo || isVideoInitialized || holder.loadState == PagerInstance.LoadState.ERROR;
 			viewMetadata = isVideoInitialized || imageHasMetadata;
 			searchImage = galleryItem.getDisplayImageUri(chan) != null;
+			copyImage = galleryItem.isImage(chan) && holder.loadState == PagerInstance.LoadState.COMPLETE;
 			navigatePost = galleryItem.postNumber != null;
 			shareFile = holder.loadState == PagerInstance.LoadState.COMPLETE;
 		}
 		return new OptionsMenuCapabilities(available, save, refresh, viewMetadata,
-				searchImage, navigatePost, shareFile);
+				searchImage, copyImage, navigatePost, shareFile);
 	}
 
 	public PagerInstance.ViewHolder getCurrentHolder() {
@@ -622,6 +629,9 @@ public class PagerUnit implements PagerInstance.Callback {
 							.show(galleryInstance.callback.getChildFragmentManager(), null);
 				});
 			}
+			if (capabilities.copyImage) {
+				addGalleryFileOption(dialogMenu, galleryItem, chan, R.string.copy_image, (file -> FileUriClipboard.copyFileUriToClipboard(file, galleryItem.getFileName(chan))));
+			}
 			if (galleryInstance.callback.isAllowNavigatePostManually(true) && capabilities.navigatePost) {
 				dialogMenu.add(R.string.go_to_post, () -> galleryInstance.callback
 						.navigatePost(galleryItem, true, true));
@@ -633,20 +643,22 @@ public class PagerUnit implements PagerInstance.Callback {
 				NavigationUtils.shareLink(context, null, galleryItem.getFileUri(chan));
 			});
 			if (capabilities.shareFile) {
-				dialogMenu.add(R.string.share_file, () -> {
-					videoUnit.forcePause();
-					Uri uri = galleryItem.getFileUri(chan);
-					File file = CacheManager.getInstance().getMediaFile(uri, false);
-					if (file == null) {
-						ClickableToast.show(R.string.cache_is_unavailable);
-					} else {
-						NavigationUtils.shareFile(context, file, galleryItem.getFileName(chan));
-					}
-				});
+				addGalleryFileOption(dialogMenu, galleryItem, chan, R.string.share_file, (file -> NavigationUtils.shareFile(context, file, galleryItem.getFileName(chan))));
 			}
 			return dialogMenu;
 		}
 		return null;
+	}
+
+	private static void addGalleryFileOption(DialogMenu dialogMenu, GalleryItem galleryItem, Chan chan, @StringRes int titleResId, Consumer<File> onClick) {
+		dialogMenu.add(titleResId, () -> {
+			File file = CacheManager.getInstance().getMediaFile(galleryItem.getFileUri(chan), false);
+			if (file != null) {
+				onClick.accept(file);
+			} else {
+				ClickableToast.show(R.string.cache_is_unavailable);
+			}
+		});
 	}
 
 	private static void displayPopupMenu(FragmentManager fragmentManager) {

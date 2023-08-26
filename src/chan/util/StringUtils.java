@@ -448,6 +448,14 @@ public class StringUtils {
 		return null;
 	}
 
+	public static String removeFileExtension(String path) {
+		if (!isEmpty(path)) {
+			String ext = "." + getFileExtension(path);
+			return path.replace(ext,"");
+		}
+		return null;
+	}
+
 	public static String formatBoardTitle(String chanName, String boardName, String title) {
 		return '/' + (isEmpty(boardName) ? chanName : boardName) + (isEmpty(title) ? '/'
 				: "/ — " + title);

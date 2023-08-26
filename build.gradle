@@ -31,8 +31,8 @@ android {
 	ndkVersion '21.4.7075529'
 
 	defaultConfig {
-		versionCode 1052
-		versionName '3.1.4-experimental-1.6.1'
+		versionCode 1053
+		versionName '3.1.4-experimental-1.6.2'
 
 		minSdkVersion 16
 		targetSdkVersion 30
@@ -48,9 +48,9 @@ android {
 
 		buildConfigField 'String', 'VERSION_DATE', '"' + versions[0].date + '"'
 		buildConfigField 'String', 'URI_UPDATES', '"//raw.githubusercontent.com/' +
-				'TrixiEther/DashchanFork/experemental/update/data.json"'
+				'TrixiEther/DashchanFork/experimental/update/data.json"'
 		buildConfigField 'String', 'URI_THEMES', '"//raw.githubusercontent.com/' +
-				'TrixiEther/DashchanFork/experemental/update/themes.json"'
+				'TrixiEther/DashchanFork/experimental/update/themes.json"'
 		buildConfigField 'String', 'GITHUB_URI_METADATA', '"//github.com/TrixiEther/DashchanFork"'
 		buildConfigField 'String', 'GITHUB_PATH_METADATA', '"metadata"'
 	}

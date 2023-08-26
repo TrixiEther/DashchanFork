@@ -20,6 +20,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.LifecycleOwner;
@@ -27,14 +28,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import chan.content.Chan;
-import chan.content.ChanConfiguration;
-import chan.content.ChanManager;
-import chan.content.RedirectException;
-import chan.text.JsonSerial;
-import chan.text.ParseException;
-import chan.util.CommonUtils;
-import chan.util.StringUtils;
+
 import com.mishiranu.dashchan.C;
 import com.mishiranu.dashchan.R;
 import com.mishiranu.dashchan.content.HidePerformer;
@@ -72,12 +66,13 @@ import com.mishiranu.dashchan.util.SearchHelper;
 import com.mishiranu.dashchan.util.ViewUtils;
 import com.mishiranu.dashchan.widget.ClickableToast;
 import com.mishiranu.dashchan.widget.DividerItemDecoration;
+import com.mishiranu.dashchan.widget.ImportantPostsMarksFastScrollBarDecoration;
 import com.mishiranu.dashchan.widget.ListPosition;
 import com.mishiranu.dashchan.widget.PaddedRecyclerView;
 import com.mishiranu.dashchan.widget.PostsLayoutManager;
-import com.mishiranu.dashchan.widget.ImportantPostsMarksFastScrollBarDecoration;
 import com.mishiranu.dashchan.widget.PullableWrapper;
 import com.mishiranu.dashchan.widget.SummaryLayout;
+
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -88,6 +83,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import chan.content.Chan;
+import chan.content.ChanConfiguration;
+import chan.content.ChanManager;
+import chan.content.RedirectException;
+import chan.text.JsonSerial;
+import chan.text.ParseException;
+import chan.util.CommonUtils;
+import chan.util.StringUtils;
 
 public class PostsPage extends ListPage implements PostsAdapter.Callback, FavoritesStorage.Observer,
 		UiManager.Observer, ExtractPostsTask.Callback, WatcherService.Session.Callback {
@@ -298,6 +302,11 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 						postItem.setHidden(PostItem.HideState.SHOWN, null);
 					}
 				}
+				if (!Preferences.isDisplayHiddenPostsEnabled() && postItem.isHidden()) {
+					getAdapter().removeHiddenPost(postItem);
+					setPostHideState(postItem, postItem.getHideState());
+					notifyTitleChanged();
+				}
 			}
 			return postItem.getHideState().hidden;
 		}
@@ -359,7 +368,8 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 			return board.allowPosting;
 		};
 		PostsAdapter adapter = new PostsAdapter(this, page.chanName, uiManager,
-				replyable, postStateProvider, getFragmentManager(), recyclerView, retainableExtra.postItems);
+				replyable, postStateProvider, getFragmentManager(),
+				recyclerView, retainableExtra.postItems, retainableExtra.hiddenPosts);
 		recyclerView.setAdapter(adapter);
 		recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(),
 				(c, position) -> adapter.configureDivider(c, position).horizontal(dividerPadding, dividerPadding)));
@@ -582,6 +592,17 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 			Page page = getPage();
 			return StringUtils.formatThreadTitle(page.chanName, page.boardName, page.threadNumber);
 		}
+	}
+
+	@Override
+	public Pair<String, String> obtainTitleSubtitle() {
+		String subtitle = null;
+		if (!Preferences.isDisplayHiddenPostsEnabled()) {
+			int hidden = getAdapter().getHiddenPostsCount();
+			if (hidden > 0)
+				subtitle = getString(R.string.hidden_posts_count__format, hidden);
+		}
+		return new Pair<>(this.obtainTitle(), subtitle);
 	}
 
 	@Override
@@ -1740,14 +1761,19 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 
 			for (PostNumber userPostNumber : userPosts) {
 				int userPostPosition = adapter.positionOfPostNumber(userPostNumber);
-				if (userPostPosition >= 0) {
+				if (userPostPosition < 0) {
+					continue;
+				}
+				boolean showUserPostOnScrollBar = !postStateProvider.isHiddenResolve(adapter.getItem(userPostPosition));
+				if (showUserPostOnScrollBar) {
 					userPostsPositions.add(userPostPosition);
-					Set<PostNumber> repliesPostNumbers = adapter.getItem(userPostPosition).getReferencesFrom();
-					for (PostNumber replyPostNumber : repliesPostNumbers) {
-						int replyPosition = adapter.positionOfPostNumber(replyPostNumber);
-						if (replyPosition >= 0) {
-							repliesPositions.add(replyPosition);
-						}
+				}
+				Set<PostNumber> repliesPostNumbers = adapter.getItem(userPostPosition).getReferencesFrom();
+				for (PostNumber replyPostNumber : repliesPostNumbers) {
+					int replyPosition = adapter.positionOfPostNumber(replyPostNumber);
+					boolean showReplyOnScrollBar = replyPosition >= 0 && !postStateProvider.isHiddenResolve(adapter.getItem(replyPosition));
+					if (showReplyOnScrollBar) {
+						repliesPositions.add(replyPosition);
 					}
 				}
 			}
@@ -1832,6 +1858,12 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 			case PERFORM_SWITCH_HIDE: {
 				setPostHideState(postItem, !postItem.getHideState().hidden
 						? PostItem.HideState.HIDDEN : PostItem.HideState.SHOWN);
+				if (postItem.getHideState() == PostItem.HideState.HIDDEN) {
+					if (!Preferences.isDisplayHiddenPostsEnabled())
+						getAdapter().removeHiddenPost(postItem);
+				}
+				notifyTitleChanged();
+				updateImportantPostsFastScrollBarDecorationDataAfterInvalidateAllViews = true;
 				getUiManager().sendPostItemMessage(postItem, UiManager.Message.POST_INVALIDATE_ALL_VIEWS);
 				break;
 			}
@@ -1865,6 +1897,13 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 					encodeAndStoreThreadExtra();
 				} else if (result == HidePerformer.AddResult.EXISTS && !postItem.getHideState().hidden) {
 					setPostHideState(postItem, PostItem.HideState.UNDEFINED);
+					if (message == UiManager.Message.PERFORM_HIDE_REPLIES) {
+						for (PostNumber postNumber : postItem.getReferencesFrom()) {
+							PostItem post = getAdapter().findPostItem(postNumber);
+							if (post != null)
+								setPostHideState(post, PostItem.HideState.UNDEFINED);
+						}
+					}
 					notifyAllAdaptersChanged();
 				}
 				adapter.preloadPosts(((LinearLayoutManager) recyclerView.getLayoutManager())

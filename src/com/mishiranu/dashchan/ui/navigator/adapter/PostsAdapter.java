@@ -65,9 +65,11 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	private final UiManager.DemandSet demandSet = new UiManager.DemandSet();
 	private final GalleryItem.Set gallerySet = new GalleryItem.Set(true);
 	private final CommentTextView.RecyclerKeeper recyclerKeeper;
+	private final RecyclerView recyclerView;
 
 	private final ArrayList<PostNumber> postNumbers = new ArrayList<>();
 	private final Map<PostNumber, PostItem> postItemsMap;
+	public final PostItem.HideState.Map<PostNumber> hiddenPosts;
 	private final HashSet<PostNumber> selected = new HashSet<>();
 
 	private int bumpLimitOrdinalIndex = PostItem.ORDINAL_INDEX_NONE;
@@ -75,14 +77,16 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
 	public PostsAdapter(Callback callback, String chanName, UiManager uiManager, Replyable replyable,
 			UiManager.PostStateProvider postStateProvider, FragmentManager fragmentManager, RecyclerView recyclerView,
-			Map<PostNumber, PostItem> postItemsMap) {
+			Map<PostNumber, PostItem> postItemsMap, PostItem.HideState.Map<PostNumber> hiddenPosts) {
 		this.uiManager = uiManager;
 		configurationSet = new UiManager.ConfigurationSet(chanName, replyable, this, postStateProvider,
 				gallerySet, fragmentManager, uiManager.dialog().createStackInstance(), this, callback,
 				true, false, true, true, true, null);
 		recyclerKeeper = new CommentTextView.RecyclerKeeper(recyclerView);
+		this.recyclerView = recyclerView;
 		super.registerAdapterDataObserver(recyclerKeeper);
 		this.postItemsMap = postItemsMap;
+		this.hiddenPosts = hiddenPosts;
 		postNumbers.addAll(postItemsMap.keySet());
 		Collections.sort(postNumbers);
 		preloadPosts(0);
@@ -110,6 +114,10 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	@Override
 	public int getItemCount() {
 		return postNumbers.size();
+	}
+
+	public int getHiddenPostsCount() {
+		return hiddenPosts.count(PostItem.HideState.HIDDEN);
 	}
 
 	@Override
@@ -304,6 +312,38 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
 	public void reloadAttachment(int position, AttachmentItem attachmentItem) {
 		notifyItemChanged(position, attachmentItem);
+	}
+
+	public void removeHiddenPost(PostItem post) {
+		int position = positionOfPostNumber(post.getPostNumber());
+		Iterator<PostItem> iterator = postItemsMap.values().iterator();
+		boolean wasHidden = false;
+		while (iterator.hasNext()) {
+			PostItem postItem = iterator.next();
+			if (post.getPostNumber().equals(postItem.getPostNumber()) && position != 0) {
+				wasHidden = true;
+				cancelPreloading();
+				break;
+			}
+		}
+		if (wasHidden) {
+			recyclerView.post(
+					() -> {
+						for (PostNumber referenceTo : post.getReferencesTo()) {
+							PostItem referenced = postItemsMap.get(referenceTo);
+							if (referenced != null) {
+								referenced.removeReferenceFrom(post.getPostNumber());
+							}
+						}
+						gallerySet.remove(post.getPostNumber());
+						postItemsMap.remove(post.getPostNumber());
+						postNumbers.clear();
+						postNumbers.addAll(postItemsMap.keySet());
+						Collections.sort(postNumbers);
+						notifyDataSetChanged();
+					}
+			);
+		}
 	}
 
 	public boolean clearDeletedPosts() {

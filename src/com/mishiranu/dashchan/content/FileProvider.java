@@ -9,29 +9,36 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+
 import androidx.annotation.NonNull;
-import chan.util.CommonUtils;
+
 import com.mishiranu.dashchan.C;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import chan.util.CommonUtils;
 
 public class FileProvider extends ContentProvider {
 	private static final String AUTHORITY = "com.mishiranu.providers.dashchan";
 	private static final String PATH_UPDATES = "updates";
 	private static final String PATH_DOWNLOADS = "downloads";
 	private static final String PATH_SHARE = "share";
+	private static final String PATH_CLIPBOARD = "clipboard";
 
-	private static final int URI_UPDATES = 1;
-	private static final int URI_DOWNLOADS = 2;
-	private static final int URI_SHARE = 3;
+	private static final int URI_MATCHER_CODE_UPDATES = 1;
+	private static final int URI_MATCHER_CODE_DOWNLOADS = 2;
+	private static final int URI_MATCHER_CODE_SHARE = 3;
+	private static final int URI_MATCHER_CODE_CLIPBOARD = 4;
 
 	private static final UriMatcher URI_MATCHER;
 
 	static {
 		URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-		URI_MATCHER.addURI(AUTHORITY, PATH_UPDATES + "/*", URI_UPDATES);
-		URI_MATCHER.addURI(AUTHORITY, PATH_DOWNLOADS + "/*", URI_DOWNLOADS);
-		URI_MATCHER.addURI(AUTHORITY, PATH_SHARE + "/*", URI_SHARE);
+		URI_MATCHER.addURI(AUTHORITY, PATH_UPDATES + "/*", URI_MATCHER_CODE_UPDATES);
+		URI_MATCHER.addURI(AUTHORITY, PATH_DOWNLOADS + "/*", URI_MATCHER_CODE_DOWNLOADS);
+		URI_MATCHER.addURI(AUTHORITY, PATH_SHARE + "/*", URI_MATCHER_CODE_SHARE);
+		URI_MATCHER.addURI(AUTHORITY, PATH_CLIPBOARD + "/*", URI_MATCHER_CODE_CLIPBOARD);
 	}
 
 	@Override
@@ -86,8 +93,46 @@ public class FileProvider extends ContentProvider {
 
 	private static InternalFile downloadsFile;
 	private static InternalFile shareFile;
+	private static InternalFile clipboardFile;
 
-	private static InternalFile convertFile(File directory, File file, String type, String providerPath) {
+	public static Uri convertDownloadsLegacyFile(File file, String type) {
+		return convertToInternalFile(Preferences.getDownloadDirectoryLegacy(), file, type, PATH_DOWNLOADS, URI_MATCHER_CODE_DOWNLOADS);
+	}
+
+	public static Uri convertShareFile(File directory, File file, String type) {
+		return convertToInternalFile(directory, file, type, PATH_SHARE, URI_MATCHER_CODE_SHARE);
+	}
+
+	public static Uri convertClipboardFile(File directory, File file, String type) {
+		return convertToInternalFile(directory, file, type, PATH_CLIPBOARD, URI_MATCHER_CODE_CLIPBOARD);
+	}
+
+	private static Uri convertToInternalFile(File directory, File file, String type, String path, int uriMatcherCode) {
+		InternalFile internalFile = createInternalFile(directory, file, type, path);
+		if (internalFile != null) {
+			switch (uriMatcherCode) {
+				case URI_MATCHER_CODE_DOWNLOADS: {
+					downloadsFile = internalFile;
+					break;
+				}
+				case URI_MATCHER_CODE_SHARE: {
+					shareFile = internalFile;
+					break;
+				}
+				case URI_MATCHER_CODE_CLIPBOARD: {
+					clipboardFile = internalFile;
+					break;
+				}
+				default: {
+					throw new IllegalArgumentException("No internal file for uri matcher code: " + uriMatcherCode);
+				}
+			}
+			return internalFile.uri;
+		}
+		return Uri.fromFile(file);
+	}
+
+	private static InternalFile createInternalFile(File directory, File file, String type, String providerPath) {
 		if (C.API_NOUGAT) {
 			String filePath = file.getAbsolutePath();
 			String directoryPath = directory.getAbsolutePath();
@@ -104,41 +149,39 @@ public class FileProvider extends ContentProvider {
 		return null;
 	}
 
-	public static Uri convertDownloadsLegacyFile(File file, String type) {
-		InternalFile internalFile = convertFile(Preferences.getDownloadDirectoryLegacy(), file, type, PATH_DOWNLOADS);
-		if (internalFile != null) {
-			downloadsFile = internalFile;
-			return internalFile.uri;
+	private static InternalFile getInternalFileForUriMatcherCode(int uriMatcherCode) {
+		InternalFile internalFile;
+		switch (uriMatcherCode) {
+			case URI_MATCHER_CODE_DOWNLOADS: {
+				internalFile = downloadsFile;
+				break;
+			}
+			case URI_MATCHER_CODE_SHARE: {
+				internalFile = shareFile;
+				break;
+			}
+			case URI_MATCHER_CODE_CLIPBOARD: {
+				internalFile = clipboardFile;
+				break;
+			}
+			default: {
+				internalFile = null;
+				break;
+			}
 		}
-		return Uri.fromFile(file);
-	}
-
-	public static Uri convertShareFile(File directory, File file, String type) {
-		InternalFile internalFile = convertFile(directory, file, type, PATH_SHARE);
-		if (internalFile != null) {
-			shareFile = internalFile;
-			return internalFile.uri;
-		}
-		return Uri.fromFile(file);
+		return internalFile;
 	}
 
 	@Override
 	public String getType(@NonNull Uri uri) {
-		switch (URI_MATCHER.match(uri)) {
-			case URI_UPDATES: {
-				return "application/vnd.android.package-archive";
-			}
-			case URI_DOWNLOADS: {
-				if (downloadsFile != null) {
-					return downloadsFile.type;
-				}
-			}
-			case URI_SHARE: {
-				if (shareFile != null) {
-					return shareFile.type;
-				}
-			}
-			default: {
+		int uriMatcherCode = URI_MATCHER.match(uri);
+		if (uriMatcherCode == URI_MATCHER_CODE_UPDATES) {
+			return "application/vnd.android.package-archive";
+		} else {
+			InternalFile internalFile = getInternalFileForUriMatcherCode(uriMatcherCode);
+			if (internalFile != null) {
+				return internalFile.type;
+			} else {
 				throw new IllegalArgumentException("Unknown URI: " + uri);
 			}
 		}
@@ -146,105 +189,83 @@ public class FileProvider extends ContentProvider {
 
 	@Override
 	public ParcelFileDescriptor openFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException {
-		switch (URI_MATCHER.match(uri)) {
-			case URI_UPDATES: {
-				if (!"r".equals(mode)) {
-					throw new FileNotFoundException();
-				}
-				File file = getUpdatesFile(uri.getLastPathSegment());
-				if (file != null) {
-					return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-				}
+		int uriMatcherCode = URI_MATCHER.match(uri);
+		File file = null;
+		if (uriMatcherCode == URI_MATCHER_CODE_UPDATES && "r".equals(mode)) {
+			file = getUpdatesFile(uri.getLastPathSegment());
+		} else {
+			InternalFile internalFile = getInternalFileForUriMatcherCode(uriMatcherCode);
+			if (internalFile != null && uri.equals(internalFile.uri)) {
+				file = internalFile.file;
 			}
-			case URI_DOWNLOADS: {
-				if (downloadsFile != null && uri.equals(downloadsFile.uri)) {
-					return ParcelFileDescriptor.open(downloadsFile.file, ParcelFileDescriptor.MODE_READ_ONLY);
-				}
-			}
-			case URI_SHARE: {
-				if (shareFile != null && uri.equals(shareFile.uri)) {
-					return ParcelFileDescriptor.open(shareFile.file, ParcelFileDescriptor.MODE_READ_ONLY);
-				}
-			}
-			default: {
-				throw new FileNotFoundException();
-			}
+		}
+
+		if (file != null) {
+			return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+		} else {
+			throw new FileNotFoundException();
 		}
 	}
 
-	private static final String[] PROJECTION = {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
+	private static final String[] ALLOWED_PROJECTION = {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
 
 	@Override
 	public Cursor query(@NonNull Uri uri, String[] projection,
-			String selection, String[] selectionArgs, String sortOrder) {
-		int matchResult = URI_MATCHER.match(uri);
-		switch (URI_MATCHER.match(uri)) {
-			case URI_UPDATES:
-			case URI_DOWNLOADS:
-			case URI_SHARE: {
-				if (projection == null) {
-					projection = PROJECTION;
-				}
-				OUTER: for (String column : projection) {
-					for (String allowedColumn : PROJECTION) {
-						if (CommonUtils.equals(column, allowedColumn)) {
-							continue OUTER;
-						}
-					}
-					throw new SQLiteException("No such column: " + column);
-				}
-				MatrixCursor cursor = new MatrixCursor(projection);
-				File file = null;
-				switch (matchResult) {
-					case URI_UPDATES: {
-						file = getUpdatesFile(uri.getLastPathSegment());
-						break;
-					}
-					case URI_DOWNLOADS: {
-						file = downloadsFile != null ? downloadsFile.file : null;
-						break;
-					}
-					case URI_SHARE: {
-						file = shareFile != null ? shareFile.file : null;
-						break;
+						String selection, String[] selectionArgs, String sortOrder) {
+		int uriMatcherCode = URI_MATCHER.match(uri);
+		if (uriMatcherCode == UriMatcher.NO_MATCH) {
+			throw new IllegalArgumentException("Unknown URI: " + uri);
+		}
+
+		if (projection == null) {
+			projection = ALLOWED_PROJECTION;
+		}
+		else {
+			OUTER:
+			for (String column : projection) {
+				for (String allowedColumn : ALLOWED_PROJECTION) {
+					if (CommonUtils.equals(column, allowedColumn)) {
+						continue OUTER;
 					}
 				}
-				if (file != null) {
-					Object[] values = new Object[projection.length];
-					for (int i = 0; i < projection.length; i++) {
-						switch (projection[i]) {
-							case OpenableColumns.DISPLAY_NAME: {
-								values[i] = file.getName();
-								break;
-							}
-							case OpenableColumns.SIZE: {
-								values[i] = file.length();
-								break;
-							}
-						}
-					}
-					cursor.addRow(values);
-				}
-				return cursor;
-			}
-			default: {
-				throw new IllegalArgumentException("Unknown URI: " + uri);
+				throw new SQLiteException("No such column: " + column);
 			}
 		}
+
+		MatrixCursor cursor = new MatrixCursor(projection);
+		File file;
+		if (uriMatcherCode == URI_MATCHER_CODE_UPDATES) {
+			file = getUpdatesFile(uri.getLastPathSegment());
+		} else {
+			InternalFile internalFile = getInternalFileForUriMatcherCode(uriMatcherCode);
+			file = internalFile != null ? internalFile.file : null;
+		}
+		if (file != null) {
+			Object[] values = new Object[projection.length];
+			for (int i = 0; i < projection.length; i++) {
+				if (OpenableColumns.DISPLAY_NAME.equals(projection[i])) {
+					values[i] = file.getName();
+				} else if (OpenableColumns.SIZE.equals(projection[i])) {
+					values[i] = file.length();
+				}
+			}
+			cursor.addRow(values);
+		}
+		return cursor;
 	}
 
 	@Override
 	public Uri insert(@NonNull Uri uri, ContentValues values) {
-		throw new SQLiteException("Unsupported operation");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-		throw new SQLiteException("Unsupported operation");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
-		throw new SQLiteException("Unsupported operation");
+		throw new UnsupportedOperationException();
 	}
 }

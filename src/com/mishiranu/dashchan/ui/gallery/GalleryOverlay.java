@@ -131,7 +131,12 @@ public class GalleryOverlay extends DialogFragment implements GalleryDialog.Call
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setRetainInstance(true);
+		boolean restoringAfterProcessDeath = savedInstanceState != null;
+		if (restoringAfterProcessDeath) {
+			dismiss();
+		} else {
+			setRetainInstance(true);
+		}
 	}
 
 	@NonNull
@@ -378,15 +383,17 @@ public class GalleryOverlay extends DialogFragment implements GalleryDialog.Call
 
 	@Override
 	public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-		menu.add(0, R.id.menu_save, 0, R.string.save)
-				.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionSave))
-				.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-		menu.add(0, R.id.menu_refresh, 0, R.string.refresh)
-				.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionRefresh))
-				.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-		menu.add(0, R.id.menu_select, 0, R.string.select)
-				.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionSelect))
-				.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		if (instance != null) {
+			menu.add(0, R.id.menu_save, 0, R.string.save)
+					.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionSave))
+					.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+			menu.add(0, R.id.menu_refresh, 0, R.string.refresh)
+					.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionRefresh))
+					.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+			menu.add(0, R.id.menu_select, 0, R.string.select)
+					.setIcon(ResourceUtils.getActionBarIcon(instance.context, R.attr.iconActionSelect))
+					.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+		}
 	}
 
 	@Override

@@ -254,8 +254,8 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 	public boolean storeFuture(FileHolder fileHolder) {
 		String hash = store(fileHolder);
 		if (hash != null) {
-			AttachmentDraft attachmentDraft = new AttachmentDraft(hash, fileHolder.getName(),
-					null, false, false, false, false, null);
+			AttachmentDraft attachmentDraft = new AttachmentDraft(hash, fileHolder.getName(), null,
+					null, false, false, false, false, null, false);
 			futureAttachmentDrafts.add(attachmentDraft);
 			serialize();
 			return true;
@@ -607,12 +607,14 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 	public static class AttachmentDraft {
 		private static final String KEY_HASH = "hash";
 		private static final String KEY_NAME = "name";
+		private static final String KEY_NEWNAME = "newname";
 		private static final String KEY_RATING = "rating";
 		private static final String KEY_OPTION_UNIQUE_HASH = "optionUniqueHash";
 		private static final String KEY_OPTION_REMOVE_METADATA = "optionRemoveMetadata";
 		private static final String KEY_OPTION_REMOVE_FILE_NAME = "optionRemoveFileName";
 		private static final String KEY_OPTION_SPOILER = "optionSpoiler";
 		private static final String KEY_REENCODING = "reencoding";
+		private static final String KEY_OPTION_NEW_FILENAME = "optionCustomName";
 
 		private static final String KEY_REENCODING_FORMAT = "format";
 		private static final String KEY_REENCODING_QUALITY = "quality";
@@ -620,24 +622,28 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 
 		public final String hash;
 		public final String name;
+		public final String newname;
 		public final String rating;
 		public final boolean optionUniqueHash;
 		public final boolean optionRemoveMetadata;
 		public final boolean optionRemoveFileName;
 		public final boolean optionSpoiler;
 		public final GraphicsUtils.Reencoding reencoding;
+		public final boolean optionCustomName;
 
-		public AttachmentDraft(String hash, String name, String rating, boolean optionUniqueHash,
+		public AttachmentDraft(String hash, String name, String newname, String rating, boolean optionUniqueHash,
 				boolean optionRemoveMetadata, boolean optionRemoveFileName, boolean optionSpoiler,
-				GraphicsUtils.Reencoding reencoding) {
+				GraphicsUtils.Reencoding reencoding, boolean optionCustomName) {
 			this.hash = hash;
 			this.name = name;
+			this.newname = newname;
 			this.rating = rating;
 			this.optionUniqueHash = optionUniqueHash;
 			this.optionRemoveMetadata = optionRemoveMetadata;
 			this.optionRemoveFileName = optionRemoveFileName;
 			this.optionSpoiler = optionSpoiler;
 			this.reencoding = reencoding;
+			this.optionCustomName = optionCustomName;
 		}
 
 		public void serialize(JsonSerial.Writer writer) throws IOException {
@@ -649,6 +655,10 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 			if (!StringUtils.isEmpty(name)) {
 				writer.name(KEY_NAME);
 				writer.value(name);
+			}
+			if (!StringUtils.isEmpty(newname)) {
+				writer.name(KEY_NEWNAME);
+				writer.value(newname);
 			}
 			if (!StringUtils.isEmpty(rating)) {
 				writer.name(KEY_RATING);
@@ -662,6 +672,8 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 			writer.value(optionRemoveFileName);
 			writer.name(KEY_OPTION_SPOILER);
 			writer.value(optionSpoiler);
+			writer.name(KEY_OPTION_NEW_FILENAME);
+			writer.value(optionCustomName);
 			if (reencoding != null) {
 				writer.name(KEY_REENCODING);
 				writer.startObject();
@@ -681,12 +693,14 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 		public static AttachmentDraft deserialize(JsonSerial.Reader reader) throws IOException, ParseException {
 			String hash = null;
 			String name = null;
+			String newname = null;
 			String rating = null;
 			boolean optionUniqueHash = false;
 			boolean optionRemoveMetadata = false;
 			boolean optionRemoveFileName = false;
 			boolean optionSpoiler = false;
 			GraphicsUtils.Reencoding reencoding = null;
+			boolean optionCustomName = false;
 			reader.startObject();
 			while (!reader.endStruct()) {
 				switch (reader.nextName()) {
@@ -696,6 +710,10 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 					}
 					case KEY_NAME: {
 						name = reader.nextString();
+						break;
+					}
+					case KEY_NEWNAME: {
+						newname = reader.nextString();
 						break;
 					}
 					case KEY_RATING: {
@@ -716,6 +734,10 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 					}
 					case KEY_OPTION_SPOILER: {
 						optionSpoiler = reader.nextBoolean();
+						break;
+					}
+					case  KEY_OPTION_NEW_FILENAME: {
+						optionCustomName = reader.nextBoolean();
 						break;
 					}
 					case KEY_REENCODING: {
@@ -755,8 +777,8 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 			if (StringUtils.isEmpty(hash)) {
 				return null;
 			}
-			return new AttachmentDraft(hash, name, rating, optionUniqueHash, optionRemoveMetadata,
-					optionRemoveFileName, optionSpoiler, reencoding);
+			return new AttachmentDraft(hash, name, newname, rating, optionUniqueHash, optionRemoveMetadata,
+					optionRemoveFileName, optionSpoiler, reencoding, optionCustomName);
 		}
 	}
 }

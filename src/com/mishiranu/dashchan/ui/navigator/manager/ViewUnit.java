@@ -399,20 +399,21 @@ public class ViewUnit {
 
 		PostBorderView border = holder.border;
 		PostBorderView.BorderStyle borderStyle = null;
-		boolean showBorder = !configurationSet.isDialog && Preferences.isShowMyPosts();
+		boolean showPostsBorders = !configurationSet.isDialog && Preferences.isShowPostsBorders();
 
-		boolean setBorderStyleUserPost = showBorder && configurationSet.postStateProvider.isUserPost(postNumber);
-		if(setBorderStyleUserPost){
+		boolean setBorderStyleUserPost = showPostsBorders && configurationSet.postStateProvider.isUserPost(postNumber);
+		if(setBorderStyleUserPost) {
 			borderStyle = PostBorderView.BorderStyle.USER_POST;
 		}
 
 		if (linkSuffixSpans != null) {
 			boolean showMyPosts = Preferences.isShowMyPosts();
 			for (LinkSuffixSpan span : linkSuffixSpans) {
-				boolean showReply = showMyPosts && configurationSet.postStateProvider.isUserPost(span.getPostNumber());
+				boolean isReply = configurationSet.postStateProvider.isUserPost(span.getPostNumber());
+				boolean showReply = showMyPosts && isReply;
 				span.setSuffix(LinkSuffixSpan.SUFFIX_USER_POST, showReply);
 
-				boolean setBorderStyleReply = showBorder && borderStyle == null && showReply;
+				boolean setBorderStyleReply = showPostsBorders && borderStyle == null && isReply;
 				if (setBorderStyleReply) {
 					borderStyle = PostBorderView.BorderStyle.REPLY;
 				}

@@ -42,7 +42,7 @@ public class CacheManager implements Runnable {
 
 	private CacheManager() {
 		if (MainApplication.getInstance().isMainProcess()) {
-			handleGalleryShareFiles();
+			cleanupTemporaryFiles();
 			syncCache();
 			IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MEDIA_MOUNTED);
 			intentFilter.addDataScheme("file");
@@ -571,8 +571,9 @@ public class CacheManager implements Runnable {
 	}
 
 	private static final String GALLERY_SHARE_FILE_NAME_START = "gallery-share-";
+	private static final String CLIPBOARD_FILE_NAME_START = "clipboard-";
 
-	private void handleGalleryShareFiles() {
+	private void cleanupTemporaryFiles() {
 		File tempDirectory = getExternalTempDirectory();
 		if (tempDirectory == null) {
 			return;
@@ -581,7 +582,8 @@ public class CacheManager implements Runnable {
 		File[] files = tempDirectory.listFiles();
 		if (files != null) {
 			for (File tempFile : files) {
-				if (tempFile.getName().startsWith(GALLERY_SHARE_FILE_NAME_START)) {
+				String tempFileName = tempFile.getName();
+				if (tempFileName.startsWith(CLIPBOARD_FILE_NAME_START) || tempFileName.startsWith(GALLERY_SHARE_FILE_NAME_START)) {
 					boolean delete = tempFile.lastModified() + 60 * 60 * 1000 < time; // 1 hour
 					if (delete) {
 						tempFile.delete();
@@ -592,21 +594,43 @@ public class CacheManager implements Runnable {
 	}
 
 	public Pair<Uri, String> prepareFileForShare(File file, String fileName) {
+		return createTemporaryFileForExternalApplication(file, fileName, GALLERY_SHARE_FILE_NAME_START + System.currentTimeMillis(), FileProvider::convertShareFile);
+	}
+
+	public Uri prepareFileForClipboard(File file, String originalFileName) {
+		Pair<Uri, String> data = createTemporaryFileForExternalApplication(file, originalFileName, CLIPBOARD_FILE_NAME_START + System.currentTimeMillis(), FileProvider::convertClipboardFile);
+		if (data != null) {
+			return data.first;
+		} else {
+			return null;
+		}
+	}
+
+	private Pair<Uri, String> createTemporaryFileForExternalApplication(File originalFile, String originalFileName, String fileName, FileUriProvider fileURIProvider) {
 		File tempDirectory = getExternalTempDirectory();
 		if (tempDirectory == null) {
 			return null;
 		}
-		String extension = StringUtils.getFileExtension(fileName);
+
+		cleanupTemporaryFiles();
+
+		String extension = StringUtils.getFileExtension(originalFileName);
 		String mimeType = MimeTypes.forExtension(extension);
 		if (mimeType == null) {
 			mimeType = "image/jpeg";
 			extension = "jpg";
 		}
-		handleGalleryShareFiles();
-		fileName = GALLERY_SHARE_FILE_NAME_START + System.currentTimeMillis() + "." + extension;
-		File shareFile = new File(tempDirectory, fileName);
-		IOUtils.copyInternalFile(file, shareFile);
-		Uri uri = FileProvider.convertShareFile(tempDirectory, shareFile, mimeType);
+
+		fileName = fileName + "." + extension;
+
+		File temporaryFile = new File(tempDirectory, fileName);
+		IOUtils.copyInternalFile(originalFile, temporaryFile);
+		Uri uri = fileURIProvider.getUri(tempDirectory, temporaryFile, mimeType);
 		return new Pair<>(uri, mimeType);
 	}
+
+	private interface FileUriProvider {
+		Uri getUri(File directory, File file, String mimeType);
+	}
+
 }

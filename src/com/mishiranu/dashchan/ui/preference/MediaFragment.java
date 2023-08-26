@@ -65,6 +65,20 @@ public class MediaFragment extends PreferenceFragment implements FragmentHandler
 				Preferences.DEFAULT_LOAD_NEAREST_IMAGE.value, R.string.load_nearest_image,
 				enumResList(Preferences.NetworkMode.values(), v -> v.titleResId));
 
+		addHeader(R.string.posting_media);
+		addCheck(true, Preferences.KEY_ALWAYS_UNIQUE_HASH, Preferences.DEFAULT_ALWAYS_UNIQUE_HASH,
+				R.string.always_unique_hash, 0);
+		addCheck(true, Preferences.KEY_ALWAYS_CLEAR_METADATA, Preferences.DEFAULT_ALWAYS_CLEAR_METADATA,
+				R.string.always_clear_metadata, 0);
+		addCheck(true, Preferences.KEY_ALWAYS_REMOVE_FILENAME, Preferences.DEFAULT_ALWAYS_REMOVE_FILENAME,
+				R.string.always_remove_filename, 0);
+		addCheck(true, Preferences.KEY_ALWAYS_RENAME_FILENAME, Preferences.DEFAULT_ALWAYS_RENAME_FILENAME,
+				R.string.always_rename_files, 0);
+		addDependency(Preferences.KEY_ALWAYS_RENAME_FILENAME, Preferences.KEY_ALWAYS_REMOVE_FILENAME, false);
+		addEdit(Preferences.KEY_FILE_NEWNAME, Preferences.DEFAULT_FILE_NEWNAME, R.string.new_filename,
+				Preferences.DEFAULT_FILE_NEWNAME, InputType.TYPE_CLASS_TEXT);
+		addDependency(Preferences.KEY_FILE_NEWNAME, Preferences.KEY_ALWAYS_REMOVE_FILENAME, false);
+
 		addHeader(R.string.downloads);
 		addCheck(true, Preferences.KEY_DOWNLOAD_DETAIL_NAME, Preferences.DEFAULT_DOWNLOAD_DETAIL_NAME,
 				R.string.detailed_file_name, R.string.detailed_file_name__summary);

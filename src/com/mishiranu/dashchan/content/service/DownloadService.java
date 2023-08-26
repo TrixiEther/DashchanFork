@@ -311,12 +311,12 @@ public class DownloadService extends BaseService implements ReadFileTask.Callbac
 
 	private void startNextTask() {
 		if (activeTask == null && !queuedTasks.isEmpty()) {
+			Iterator<TaskData> iterator = queuedTasks.values().iterator();
+			TaskData taskData = iterator.next();
+			iterator.remove();
 			SINGLE_THREAD_EXECUTOR.execute(() -> {
-				Iterator<TaskData> iterator = queuedTasks.values().iterator();
-				TaskData taskData = iterator.next();
 				DataFile taskDataFile = getDataFile(taskData);
 				activeTaskDataFile = taskDataFile;
-				iterator.remove();
 				if (taskData.input != null) {
 					boolean success = false;
 					try (InputStream input = taskData.input; OutputStream output = taskDataFile.openOutputStream()) {
