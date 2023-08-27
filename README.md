@@ -79,3 +79,5 @@ The source code of the video player libraries extension is available in
 ## License
 
 Dashchan is available under the [GNU General Public License, version 3 or later](COPYING).
+
+Dummy changes
