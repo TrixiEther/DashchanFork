@@ -17,6 +17,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.TypefaceSpan;
 import android.util.AttributeSet;
 import android.view.ActionMode;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -397,6 +398,7 @@ public class CommentTextView extends TextView {
 
 	private void sendFakeMotionEvent(int action, int x, int y) {
 		MotionEvent motionEvent = MotionEvent.obtain(0, SystemClock.uptimeMillis(), action, x, y, 0);
+		motionEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 		onTouchEvent(motionEvent);
 		motionEvent.recycle();
 	}
