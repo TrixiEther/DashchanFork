@@ -1,7 +1,7 @@
 bug:
 - all:
     - base-branch: ['3.1.4-experimental-*']
-    - head-branch: ['^[\D\d]+\/bug\/[\D\d]+']
+    - head-branch: ['^[\D\d]+\/bug\/[\D\d]+','\/bug\/[\D\d]+','\/fix\/[\D\d]+','fix\/[\D\d]+']
 
 enhancement:
 - all:
