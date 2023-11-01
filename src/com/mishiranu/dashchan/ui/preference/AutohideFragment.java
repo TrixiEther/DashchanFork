@@ -262,6 +262,16 @@ public class AutohideFragment extends BaseListFragment {
 			} else {
 				viewHolder.text1.setText(R.string.empty_values);
 			}
+			if (autohideItem.chanNames != null) {
+				StringBuilder forChans = new StringBuilder(viewHolder.text1.getText() + " - ");
+				if (autohideItem.chanNames.size() == 1) {
+					forChans.append((String)(autohideItem.chanNames.toArray()[0]));
+				}
+				else {
+					forChans.append(getString(R.string.multiple_forums));
+				}
+				viewHolder.text1.setText(forChans.toString());
+			}
 			StringBuilder builder = new StringBuilder();
 			boolean and = false;
 			if (!StringUtils.isEmpty(autohideItem.boardName) || autohideItem.optionOriginalPost
