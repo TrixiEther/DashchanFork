@@ -402,6 +402,12 @@ public class AutohideFragment extends BaseListFragment {
 			autohideOriginalPost = view.findViewById(R.id.autohide_original_post);
 			autohideSage = view.findViewById(R.id.autohide_sage);
 			autohideEmpty = view.findViewById(R.id.autohide_empty);
+			autohideEmpty.setOnCheckedChangeListener((buttonView, isChecked) -> {
+				valueEdit.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+				errorText.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+				matcherText.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+				testStringEdit.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+			});
 			autohideSubject = view.findViewById(R.id.autohide_subject);
 			autohideComment = view.findViewById(R.id.autohide_comment);
 			autohideName = view.findViewById(R.id.autohide_name);
@@ -413,15 +419,6 @@ public class AutohideFragment extends BaseListFragment {
 			valueEdit.addTextChangedListener(valueListener);
 			testStringEdit.addTextChangedListener(testStringListener);
 			chanNameSelector.setOnClickListener(v -> new ChanMultiChoiceDialog(selectedChanNames).show(this));
-			autohideEmpty.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-				@Override
-				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-					valueEdit.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
-					errorText.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
-					matcherText.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
-					testStringEdit.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
-				}
-			});
 			if (C.API_LOLLIPOP) {
 				chanNameSelector.setTypeface(ResourceUtils.TYPEFACE_MEDIUM);
 			}
