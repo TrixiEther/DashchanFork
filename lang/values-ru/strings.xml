@@ -31,6 +31,8 @@
 	<string name="audio_playback">Воспроизведение аудио</string>
 	<string name="audio_player">Аудиоплеер</string>
 	<string name="autohide">Автоскрытие</string>
+	<string name="autohide_empty">Скрывать посты содержащие пустые значения</string>
+	<string name="empty_values">Пустые значения</string>
 	<string name="available__plural">Доступные</string>
 	<string name="backup_data">Резервное копирование данных</string>
 	<string name="backup_data__summary">Сохранение всех настроек, избранного, истории и правил автоскрытия</string>

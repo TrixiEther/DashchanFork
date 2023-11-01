@@ -33,6 +33,8 @@
 	<string name="audio_playback">Audio playback</string>
 	<string name="audio_player">Audio player</string>
 	<string name="autohide">Autohide</string>
+	<string name="autohide_empty">Hide posts containing empty value</string>
+	<string name="empty_values">Empty values</string>
 	<string name="available__plural">Available</string>
 	<string name="backup_data">Backup data</string>
 	<string name="backup_data__summary">Save all your settings, favorites, history, and autohide rules</string>

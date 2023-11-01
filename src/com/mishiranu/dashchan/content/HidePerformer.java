@@ -130,7 +130,12 @@ public class HidePerformer {
 								if (subject == null) {
 									subject = postItem.getSubject();
 								}
-								if ((result = autohideItem.find(subject)) != null) {
+								if (autohideItem.optionEmpty) {
+									if (subject.isEmpty()) {
+										return autohideItem.getReason(AutohideStorage.AutohideItem
+												.ReasonSource.SUBJECT, null, null);
+									}
+								} else if ((result = autohideItem.find(subject)) != null) {
 									return autohideItem.getReason(AutohideStorage.AutohideItem
 											.ReasonSource.SUBJECT, comment, result);
 								}
@@ -139,38 +144,57 @@ public class HidePerformer {
 								if (comment == null) {
 									comment = postItem.getComment(chan).toString();
 								}
-								if ((result = autohideItem.find(comment)) != null) {
+								if (autohideItem.optionEmpty) {
+									if (comment.isEmpty()) {
+										return autohideItem.getReason(AutohideStorage.AutohideItem
+												.ReasonSource.COMMENT, null, null);
+									}
+								} else if ((result = autohideItem.find(comment)) != null) {
 									return autohideItem.getReason(AutohideStorage.AutohideItem
 											.ReasonSource.COMMENT, comment, result);
 								}
 							}
 							if (autohideItem.optionName) {
+								String postItemName = postItem.getFullName(chan).toString();
 								if (names == null) {
-									String name = postItem.getFullName(chan).toString();
 									List<Post.Icon> icons = postItem.getIcons();
 									if (!icons.isEmpty()) {
 										names = new ArrayList<>(1 + icons.size());
-										names.add(name);
+										names.add(postItemName);
 										for (Post.Icon icon : icons) {
 											names.add(icon.title);
 										}
 									} else {
-										names = Collections.singletonList(name);
+										names = Collections.singletonList(postItemName);
 									}
 								}
-								for (String name : names) {
-									if ((result = autohideItem.find(name)) != null) {
+								if (autohideItem.optionEmpty) {
+									if (postItemName.isEmpty()) {
 										return autohideItem.getReason(AutohideStorage.AutohideItem
-												.ReasonSource.NAME, name, result);
+												.ReasonSource.NAME, null, null);
+									}
+								} else {
+									for (String name : names) {
+										if ((result = autohideItem.find(name)) != null) {
+											return autohideItem.getReason(AutohideStorage.AutohideItem
+													.ReasonSource.NAME, name, result);
+										}
 									}
 								}
 							}
 							if (autohideItem.optionFileName && postItem.hasAttachments()) {
 								for (AttachmentItem attachmentItem : postItem.getAttachmentItems()) {
 									String originalName = StringUtils.emptyIfNull(attachmentItem.getOriginalName());
-									if ((result = autohideItem.find(originalName)) != null) {
-										return autohideItem.getReason(AutohideStorage.AutohideItem
-												.ReasonSource.FILE, originalName, result);
+									if (autohideItem.optionEmpty) {
+										if (originalName.isEmpty() || StringUtils.removeFileExtension(originalName).isEmpty()) {
+											return autohideItem.getReason(AutohideStorage.AutohideItem
+													.ReasonSource.FILE, null, null);
+										}
+									} else {
+										if ((result = autohideItem.find(originalName)) != null) {
+											return autohideItem.getReason(AutohideStorage.AutohideItem
+													.ReasonSource.FILE, originalName, result);
+										}
 									}
 								}
 							}

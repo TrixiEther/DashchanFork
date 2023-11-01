@@ -25,6 +25,7 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 	private static final String KEY_OPTION_COMMENT = "optionComment";
 	private static final String KEY_OPTION_NAME = "optionName";
 	private static final String KEY_OPTION_FILE_NAME = "optionFileName";
+	private static final String KEY_OPTION_EMPTY = "optionEmpty";
 	private static final String KEY_VALUE = "value";
 
 	private static final AutohideStorage INSTANCE = new AutohideStorage();
@@ -81,9 +82,10 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 					boolean optionComment = jsonObject.optBoolean(KEY_OPTION_COMMENT);
 					boolean optionName = jsonObject.optBoolean(KEY_OPTION_NAME);
 					boolean optionFileName = jsonObject.optBoolean(KEY_OPTION_FILE_NAME);
+					boolean optionEmpty = jsonObject.optBoolean(KEY_OPTION_EMPTY);
 					String value = jsonObject.optString(KEY_VALUE, null);
 					autohideItems.add(new AutohideItem(chanNames, boardName, threadNumber, optionOriginalPost,
-							optionSage, optionSubject, optionComment, optionName, optionFileName, value));
+							optionSage, optionEmpty, optionSubject, optionComment, optionName, optionFileName, value));
 				}
 			}
 		}
@@ -110,6 +112,7 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 				putJson(jsonObject, KEY_OPTION_COMMENT, autohideItem.optionComment);
 				putJson(jsonObject, KEY_OPTION_NAME, autohideItem.optionName);
 				putJson(jsonObject, KEY_OPTION_FILE_NAME, autohideItem.optionFileName);
+				putJson(jsonObject, KEY_OPTION_EMPTY, autohideItem.optionEmpty);
 				putJson(jsonObject, KEY_VALUE, autohideItem.value);
 				jsonArray.put(jsonObject);
 			}
@@ -155,6 +158,7 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 
 		public boolean optionOriginalPost;
 		public boolean optionSage;
+		public boolean optionEmpty;
 
 		public boolean optionSubject;
 		public boolean optionComment;
@@ -171,15 +175,15 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 		@SuppressWarnings("CopyConstructorMissesField")
 		public AutohideItem(AutohideItem autohideItem) {
 			this(autohideItem.chanNames, autohideItem.boardName, autohideItem.threadNumber,
-					autohideItem.optionOriginalPost, autohideItem.optionSage, autohideItem.optionSubject,
-					autohideItem.optionComment, autohideItem.optionName, autohideItem.optionFileName,
+					autohideItem.optionOriginalPost, autohideItem.optionSage, autohideItem.optionEmpty,
+					autohideItem.optionSubject, autohideItem.optionComment, autohideItem.optionName, autohideItem.optionFileName,
 					autohideItem.value);
 		}
 
 		public AutohideItem(HashSet<String> chanNames, String boardName, String threadNumber,
-				boolean optionOriginalPost, boolean optionSage, boolean optionSubject, boolean optionComment,
-				boolean optionName, boolean optionFileName, String value) {
-			update(chanNames, boardName, threadNumber, optionOriginalPost, optionSage,
+							boolean optionOriginalPost, boolean optionSage, boolean optionEmpty, boolean optionSubject,
+							boolean optionComment, boolean optionName, boolean optionFileName, String value) {
+			update(chanNames, boardName, threadNumber, optionOriginalPost, optionSage, optionEmpty,
 					optionSubject, optionComment, optionName, optionFileName, value);
 		}
 
@@ -188,13 +192,14 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 		}
 
 		public void update(HashSet<String> chanNames, String boardName, String threadNumber,
-				boolean optionOriginalPost, boolean optionSage, boolean optionSubject,
+				boolean optionOriginalPost, boolean optionSage, boolean optionEmptyComment, boolean optionSubject,
 				boolean optionComment, boolean optionName, boolean optionFileName, String value) {
 			this.chanNames = chanNames;
 			this.boardName = boardName;
 			this.threadNumber = threadNumber;
 			this.optionOriginalPost = optionOriginalPost;
 			this.optionSage = optionSage;
+			this.optionEmpty = optionEmptyComment;
 			this.optionSubject = optionSubject;
 			this.optionComment = optionComment;
 			this.optionName = optionName;
@@ -246,10 +251,15 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 			if (optionFileName && reasonSource == ReasonSource.FILE) {
 				builder.append("file ");
 			}
+			if (optionComment && optionEmpty && reasonSource == ReasonSource.COMMENT) {
+				builder.append("comment ");
+			}
 			if (!StringUtils.isEmpty(findResult)) {
 				builder.append(findResult);
 			} else if (!StringUtils.isEmpty(text)) {
 				builder.append(StringUtils.cutIfLongerToLine(text, 80, true));
+			} else {
+				builder.append("empty");
 			}
 			return builder.toString();
 		}
@@ -270,6 +280,7 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 			dest.writeByte((byte) (optionComment ? 1 : 0));
 			dest.writeByte((byte) (optionName ? 1 : 0));
 			dest.writeByte((byte) (optionFileName ? 1 : 0));
+			dest.writeByte((byte) (optionEmpty ? 1: 0));
 			dest.writeString(value);
 		}
 
@@ -290,6 +301,7 @@ public class AutohideStorage extends StorageManager.JsonOrgStorage<List<Autohide
 				autohideItem.optionComment = source.readByte() != 0;
 				autohideItem.optionName = source.readByte() != 0;
 				autohideItem.optionFileName = source.readByte() != 0;
+				autohideItem.optionEmpty = source.readByte() != 0;
 				autohideItem.value = source.readString();
 				return autohideItem;
 			}

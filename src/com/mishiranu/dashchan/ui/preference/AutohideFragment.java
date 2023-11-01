@@ -255,8 +255,12 @@ public class AutohideFragment extends BaseListFragment {
 		public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 			ViewFactory.TwoLinesViewHolder viewHolder = (ViewFactory.TwoLinesViewHolder) holder.itemView.getTag();
 			AutohideStorage.AutohideItem autohideItem = getItem(position);
-			viewHolder.text1.setText(StringUtils.isEmpty(autohideItem.value)
-					? getString(R.string.all_posts) : autohideItem.value);
+			if (!autohideItem.optionEmpty) {
+				viewHolder.text1.setText(StringUtils.isEmpty(autohideItem.value)
+						? getString(R.string.all_posts) : autohideItem.value);
+			} else {
+				viewHolder.text1.setText(R.string.empty_values);
+			}
 			StringBuilder builder = new StringBuilder();
 			boolean and = false;
 			if (!StringUtils.isEmpty(autohideItem.boardName) || autohideItem.optionOriginalPost
@@ -355,6 +359,7 @@ public class AutohideFragment extends BaseListFragment {
 		private EditText threadNumberEdit;
 		private CheckBox autohideOriginalPost;
 		private CheckBox autohideSage;
+		private CheckBox autohideEmpty;
 		private CheckBox autohideSubject;
 		private CheckBox autohideComment;
 		private CheckBox autohideName;
@@ -385,6 +390,7 @@ public class AutohideFragment extends BaseListFragment {
 			threadNumberEdit = view.findViewById(R.id.thread_number);
 			autohideOriginalPost = view.findViewById(R.id.autohide_original_post);
 			autohideSage = view.findViewById(R.id.autohide_sage);
+			autohideEmpty = view.findViewById(R.id.autohide_empty);
 			autohideSubject = view.findViewById(R.id.autohide_subject);
 			autohideComment = view.findViewById(R.id.autohide_comment);
 			autohideName = view.findViewById(R.id.autohide_name);
@@ -418,6 +424,7 @@ public class AutohideFragment extends BaseListFragment {
 				threadNumberEdit.setText(autohideItem.threadNumber);
 				autohideOriginalPost.setChecked(autohideItem.optionOriginalPost);
 				autohideSage.setChecked(autohideItem.optionSage);
+				autohideEmpty.setChecked(autohideItem.optionEmpty);
 				autohideSubject.setChecked(autohideItem.optionSubject);
 				autohideComment.setChecked(autohideItem.optionComment);
 				autohideName.setChecked(autohideItem.optionName);
@@ -429,6 +436,7 @@ public class AutohideFragment extends BaseListFragment {
 				threadNumberEdit.setText(null);
 				autohideOriginalPost.setChecked(false);
 				autohideSage.setChecked(false);
+				autohideEmpty.setChecked(false);
 				autohideSubject.setChecked(true);
 				autohideComment.setChecked(true);
 				autohideName.setChecked(true);
@@ -488,9 +496,10 @@ public class AutohideFragment extends BaseListFragment {
 			boolean optionComment = autohideComment.isChecked();
 			boolean optionName = autohideName.isChecked();
 			boolean optionFileName = autohideFileName.isChecked();
+			boolean optionEmptyComment = autohideEmpty.isChecked();
 			String value = valueEdit.getText().toString();
 			return new AutohideStorage.AutohideItem(selectedChanNames.size() > 0 ? selectedChanNames : null,
-					boardName, threadNumber, optionOriginalPost, optionSage,
+					boardName, threadNumber, optionOriginalPost, optionSage, optionEmptyComment,
 					optionSubject, optionComment, optionName, optionFileName, value);
 		}
 
