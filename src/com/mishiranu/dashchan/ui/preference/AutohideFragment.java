@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -402,6 +403,15 @@ public class AutohideFragment extends BaseListFragment {
 			valueEdit.addTextChangedListener(valueListener);
 			testStringEdit.addTextChangedListener(testStringListener);
 			chanNameSelector.setOnClickListener(v -> new ChanMultiChoiceDialog(selectedChanNames).show(this));
+			autohideEmpty.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					valueEdit.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
+					errorText.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
+					matcherText.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
+					testStringEdit.setVisibility(!isChecked ? View.VISIBLE : View.GONE);
+				}
+			});
 			if (C.API_LOLLIPOP) {
 				chanNameSelector.setTypeface(ResourceUtils.TYPEFACE_MEDIUM);
 			}
