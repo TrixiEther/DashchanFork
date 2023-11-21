@@ -373,16 +373,16 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 		recyclerView.setAdapter(adapter);
 		DividerItemDecoration divider = new DividerItemDecoration(recyclerView.getContext(),
 				(c, position) -> adapter.configureDivider(c, position).horizontal(dividerPadding, dividerPadding));
-		divider.setSkipCallback(position -> {
-			if (Preferences.isHighlightUserPosts()) {
+		if (Preferences.isHighlightUserPosts()) {
+			divider.setSkipCallback(position -> {
 				if (adapter.getConfigurationSet().postStateProvider.isUserPost(adapter.getItem(position).getPostNumber()))
 					return true;
 				if ((position + 1) < adapter.getItemCount()) {
 					return adapter.getConfigurationSet().postStateProvider.isUserPost(adapter.getItem(position + 1).getPostNumber());
 				}
-			}
 			return false;
-		});
+			});
+		}
 		recyclerView.addItemDecoration(divider);
 		recyclerView.addItemDecoration(adapter.createPostItemDecoration(context, dividerPadding));
 		recyclerView.getPullable().setPullSides(PullableWrapper.Side.BOTH);
