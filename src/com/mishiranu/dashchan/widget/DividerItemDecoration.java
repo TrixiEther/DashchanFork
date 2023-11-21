@@ -64,12 +64,17 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 		boolean shouldPlaceAbove(int position);
 	}
 
+	public interface SkipCallback {
+		boolean shouldSkipDivider(int position);
+	}
+
 	private final Callback callback;
 	private final Drawable drawable;
 	private final Configuration configuration = new Configuration();
 	private final Rect rect = new Rect();
 
 	private AboveCallback aboveCallback;
+	private SkipCallback skipCallback;
 
 	public DividerItemDecoration(Context context, Callback callback) {
 		this.callback = callback;
@@ -79,6 +84,8 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 	public void setAboveCallback(AboveCallback aboveCallback) {
 		this.aboveCallback = aboveCallback;
 	}
+
+	public void setSkipCallback(SkipCallback skipCallback) { this.skipCallback = skipCallback; }
 
 	private void drawDivider(Canvas canvas, int top, int left, int right, int height, View view, boolean translate) {
 		if (translate) {
@@ -97,6 +104,8 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 		for (int i = 0; i < childCount; i++) {
 			View view = parent.getChildAt(i);
 			int position = parent.getChildAdapterPosition(view);
+			if (skipCallback != null && skipCallback.shouldSkipDivider(position))
+				continue;
 			if (position >= 0) {
 				callback.configure(configuration, position);
 				if (configuration.need) {
