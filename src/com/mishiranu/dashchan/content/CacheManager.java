@@ -642,4 +642,46 @@ public class CacheManager implements Runnable {
 		Uri getUri(File directory, File file, String mimeType);
 	}
 
+	public static class CacheException extends Exception {
+
+		public CacheException(String errorMessage) {
+			super(errorMessage);
+		}
+
+	}
+
+	public File getMediaFileOrThrow(Uri uri, boolean touch) throws CacheException  {
+		File directory = getMediaDirectoryOrThrow();
+		String fileName = getCachedFileKey(uri);
+		File file = new File(directory, fileName);
+		if (touch) {
+			updateCachedFileLastModified(file, fileName, CacheItem.Type.MEDIA);
+		}
+		return file;
+	}
+
+	public File getMediaDirectoryOrThrow() throws CacheException {
+		if (!isCacheAvailable()) {
+			throw new CacheException("Cache storage is not available");
+		}
+
+		File cacheDirectory = getCacheDirectory();
+		if (cacheDirectory == null) {
+			throw new CacheException("Cache directory is not available");
+		}
+		if (!cacheDirectory.exists()) {
+			throw new CacheException("Cache directory doesn't exist");
+		}
+
+		File mediaCacheDirectory = new File(cacheDirectory, "media");
+		if (!mediaCacheDirectory.exists()) {
+			boolean mediaCacheDirectoryCreated = mediaCacheDirectory.mkdirs();
+			if (!mediaCacheDirectoryCreated) {
+				throw new CacheException("Cannot create media cache directory");
+			}
+		}
+
+		return mediaCacheDirectory;
+	}
+
 }
