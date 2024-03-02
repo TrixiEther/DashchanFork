@@ -1552,5 +1552,12 @@ public class Preferences {
 		return PREFERENCES.getBoolean(KEY_SPACE_AFTER_QUOTE, DEFAULT_SPACE_AFTER_QUOTE);
 	}
 
+	public static final String KEY_USE_INTERNAL_STORAGE_FOR_CACHE = "use_internal_storage_for_cache";
+	public static final boolean DEFAULT_USE_INTERNAL_STORAGE_FOR_CACHE = false;
+
+	public static boolean isUseInternalStorageForCache(){
+		return PREFERENCES.getBoolean(KEY_USE_INTERNAL_STORAGE_FOR_CACHE, DEFAULT_USE_INTERNAL_STORAGE_FOR_CACHE);
+	}
+
 
 }
