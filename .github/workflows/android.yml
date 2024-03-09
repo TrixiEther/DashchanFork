@@ -31,7 +31,7 @@ jobs:
         cache: gradle
         
     - name: Install NDK
-      run: echo "y" | sudo ${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
+      run: echo "y" | sudo ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529"
       
     - name: Install libncurses5
       run: sudo apt-get install libncurses5 -y
