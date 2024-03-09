@@ -328,7 +328,7 @@ public class CacheManager implements Runnable {
 	}
 
 	public boolean isCacheAvailable() {
-		return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+		return Preferences.isUseInternalStorageForCache() || Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
 	}
 
 	public long getCacheSize() {
@@ -347,7 +347,7 @@ public class CacheManager implements Runnable {
 	}
 
 	private File getCacheDirectory(String name) {
-		File directory = getExternalCacheDirectory();
+		File directory = getCacheDirectory();
 		if (directory == null) {
 			return null;
 		}
@@ -537,29 +537,38 @@ public class CacheManager implements Runnable {
 
 	private final Object directoryLocker = new Object();
 
-	private volatile File externalCacheDirectory;
-	private volatile File externalTempDirectory;
+	private volatile File cacheDirectory;
+	private volatile File tempDirectory;
 
-	private File getExternalCacheDirectory() {
-		if (externalCacheDirectory == null) {
-			synchronized (directoryLocker) {
-				if (externalCacheDirectory == null) {
-					externalCacheDirectory = MainApplication.getInstance().getExternalCacheDir();
-				}
-			}
-		}
-		return externalCacheDirectory;
+	public void rebuildCache() {
+		waitCacheSync();
+		cacheDirectory = null;
+		tempDirectory = null;
+		syncCache();
 	}
 
-	private File getExternalTempDirectory() {
-		if (externalTempDirectory == null) {
+	private File getCacheDirectory() {
+		if (cacheDirectory == null) {
 			synchronized (directoryLocker) {
-				if (externalTempDirectory == null) {
-					externalTempDirectory = MainApplication.getInstance().getExternalCacheDir();
+				if (cacheDirectory == null) {
+					MainApplication application = MainApplication.getInstance();
+					cacheDirectory = Preferences.isUseInternalStorageForCache() ? application.getCacheDir() : application.getExternalCacheDir();
 				}
 			}
 		}
-		return externalTempDirectory;
+		return cacheDirectory;
+	}
+
+	private File getTempDirectory() {
+		if (tempDirectory == null) {
+			synchronized (directoryLocker) {
+				if (tempDirectory == null) {
+					MainApplication application = MainApplication.getInstance();
+					tempDirectory = Preferences.isUseInternalStorageForCache() ? application.getCacheDir() : application.getExternalCacheDir();
+				}
+			}
+		}
+		return tempDirectory;
 	}
 
 	public File getInternalCacheFile(String fileName) {
@@ -574,7 +583,7 @@ public class CacheManager implements Runnable {
 	private static final String CLIPBOARD_FILE_NAME_START = "clipboard-";
 
 	private void cleanupTemporaryFiles() {
-		File tempDirectory = getExternalTempDirectory();
+		File tempDirectory = getTempDirectory();
 		if (tempDirectory == null) {
 			return;
 		}
@@ -607,7 +616,7 @@ public class CacheManager implements Runnable {
 	}
 
 	private Pair<Uri, String> createTemporaryFileForExternalApplication(File originalFile, String originalFileName, String fileName, FileUriProvider fileURIProvider) {
-		File tempDirectory = getExternalTempDirectory();
+		File tempDirectory = getTempDirectory();
 		if (tempDirectory == null) {
 			return null;
 		}
@@ -631,6 +640,48 @@ public class CacheManager implements Runnable {
 
 	private interface FileUriProvider {
 		Uri getUri(File directory, File file, String mimeType);
+	}
+
+	public static class CacheException extends Exception {
+
+		public CacheException(String errorMessage) {
+			super(errorMessage);
+		}
+
+	}
+
+	public File getMediaFileOrThrow(Uri uri, boolean touch) throws CacheException  {
+		File directory = getMediaDirectoryOrThrow();
+		String fileName = getCachedFileKey(uri);
+		File file = new File(directory, fileName);
+		if (touch) {
+			updateCachedFileLastModified(file, fileName, CacheItem.Type.MEDIA);
+		}
+		return file;
+	}
+
+	public File getMediaDirectoryOrThrow() throws CacheException {
+		if (!isCacheAvailable()) {
+			throw new CacheException("Cache storage is not available");
+		}
+
+		File cacheDirectory = getCacheDirectory();
+		if (cacheDirectory == null) {
+			throw new CacheException("Cache directory is not available");
+		}
+		if (!cacheDirectory.exists()) {
+			throw new CacheException("Cache directory doesn't exist");
+		}
+
+		File mediaCacheDirectory = new File(cacheDirectory, "media");
+		if (!mediaCacheDirectory.exists()) {
+			boolean mediaCacheDirectoryCreated = mediaCacheDirectory.mkdirs();
+			if (!mediaCacheDirectoryCreated) {
+				throw new CacheException("Cannot create media cache directory");
+			}
+		}
+
+		return mediaCacheDirectory;
 	}
 
 }

@@ -26,6 +26,7 @@ import com.mishiranu.dashchan.content.async.TaskViewModel;
 import com.mishiranu.dashchan.media.VideoPlayer;
 import com.mishiranu.dashchan.ui.FragmentHandler;
 import com.mishiranu.dashchan.ui.InstanceDialog;
+import com.mishiranu.dashchan.ui.preference.core.CheckPreference;
 import com.mishiranu.dashchan.ui.preference.core.EditPreference;
 import com.mishiranu.dashchan.ui.preference.core.Preference;
 import com.mishiranu.dashchan.ui.preference.core.PreferenceFragment;
@@ -170,6 +171,11 @@ public class MediaFragment extends PreferenceFragment implements FragmentHandler
 
 		addDependency(Preferences.KEY_SUBDIR_PATTERN, Preferences.KEY_DOWNLOAD_SUBDIR, false,
 				Preferences.DownloadSubdirMode.DISABLED.value);
+		CheckPreference useInternalStorageForCachePreference = addCheck(true, Preferences.KEY_USE_INTERNAL_STORAGE_FOR_CACHE, Preferences.DEFAULT_USE_INTERNAL_STORAGE_FOR_CACHE,R.string.use_internal_storage_for_cache, R.string.use_internal_storage_for_cache__summary);
+		useInternalStorageForCachePreference.setOnAfterChangeListener(p -> {
+			CacheManager.getInstance().rebuildCache();
+			clearCachePreference.invalidate();
+		});
 	}
 
 	@Override

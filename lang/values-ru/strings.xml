@@ -588,4 +588,6 @@
 	<string name="new_filename">Новое имя файла</string>
 	<string name="space_after_quote">Добавлять пробел после цитирования</string>
 	<string name="rename_to_jpg">Переименовать в .jpg</string>
+	<string name="use_internal_storage_for_cache">Использовать внутреннее хранилище для кэша</string>
+	<string name="use_internal_storage_for_cache__summary">Активируйте только если есть проблемы с кэшем</string>
 </resources>
