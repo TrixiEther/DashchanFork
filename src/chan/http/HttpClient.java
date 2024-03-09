@@ -438,6 +438,7 @@ public class HttpClient {
 			connection.setConnectTimeout(request.connectTimeout);
 			connection.setReadTimeout(request.readTimeout);
 			connection.setInstanceFollowRedirects(false);
+			connection.setRequestProperty("Host", url.getHost());
 			connection.setRequestProperty("Connection", request.keepAlive ? "keep-alive" : "close");
 			String userAgent = null;
 			boolean userAgentSet = false;
