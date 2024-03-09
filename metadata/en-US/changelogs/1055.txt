@@ -1,0 +1,2 @@
+* Added support for internal cache storage
+* Network improvements (may fix some chans whose hosts were previously unavailable)
