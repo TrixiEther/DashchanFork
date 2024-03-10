@@ -547,7 +547,7 @@ public class CacheManager implements Runnable {
 		syncCache();
 	}
 
-	private File getCacheDirectory() {
+	public File getCacheDirectory() {
 		if (cacheDirectory == null) {
 			synchronized (directoryLocker) {
 				if (cacheDirectory == null) {
