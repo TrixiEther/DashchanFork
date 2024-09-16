@@ -375,7 +375,7 @@ public class PostsPage extends ListPage implements PostsAdapter.Callback, Favori
 				(c, position) -> adapter.configureDivider(c, position).horizontal(dividerPadding, dividerPadding));
 		if (Preferences.isHighlightUserPosts()) {
 			divider.setSkipCallback(position -> {
-				if (adapter.getConfigurationSet().postStateProvider.isUserPost(adapter.getItem(position).getPostNumber()))
+				if (adapter.getConfigurationSet().postStateProvider.isUserPost(adapter.getItem(position + 1).getPostNumber()))
 					return true;
 				if ((position + 1) < adapter.getItemCount()) {
 					return adapter.getConfigurationSet().postStateProvider.isUserPost(adapter.getItem(position + 1).getPostNumber());
