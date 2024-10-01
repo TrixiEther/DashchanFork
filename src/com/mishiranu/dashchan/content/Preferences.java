@@ -1559,5 +1559,32 @@ public class Preferences {
 		return PREFERENCES.getBoolean(KEY_USE_INTERNAL_STORAGE_FOR_CACHE, DEFAULT_USE_INTERNAL_STORAGE_FOR_CACHE);
 	}
 
+	public enum MediaLoadingAction {
+		MANUALLY("manually", R.string.manually),
+		REPLACE("replace", R.string.replace),
+		KEEP_ALL("keep_all", R.string.keep_all),
+		SKIP("skip", R.string.skip);
+
+		private static final EnumValueProvider<MediaLoadingAction> VALUE_PROVIDER = o -> o.value;
+
+		public final String value;
+		public final int titleResId;
+
+		MediaLoadingAction(String value, int titleResId) {
+			this.value = value;
+			this.titleResId = titleResId;
+		}
+	}
+
+	public static final String KEY_MEDIA_LOADING_ACTION = "media_loading_action";
+	public static final MediaLoadingAction DEFAULT_MEDIA_LOADING_ACTION = MediaLoadingAction.MANUALLY;
+
+	public static MediaLoadingAction getMediaLoadingAction() {
+		return getEnumValue(KEY_MEDIA_LOADING_ACTION, MediaLoadingAction.values(), DEFAULT_MEDIA_LOADING_ACTION, MediaLoadingAction.VALUE_PROVIDER);
+	}
+
+	public static void setMediaLoadingAction(MediaLoadingAction mediaLoadingAction) {
+		PREFERENCES.edit().put(KEY_MEDIA_LOADING_ACTION, mediaLoadingAction != null ? mediaLoadingAction.value : null).close();
+	}
 
 }

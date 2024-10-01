@@ -590,4 +590,6 @@
 	<string name="rename_to_jpg">Переименовать в .jpg</string>
 	<string name="use_internal_storage_for_cache">Использовать внутреннее хранилище для кэша</string>
 	<string name="use_internal_storage_for_cache__summary">Активируйте только если есть проблемы с кэшем</string>
+	<string name="standard_action_when_loading_media">Стандартное действие при загрузке медиа</string>
+	<string name="manually">Вручную</string>
 </resources>

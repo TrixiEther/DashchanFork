@@ -111,7 +111,24 @@ public class DownloadDialog {
 			replaceDialog.dismissIfNotEqual(replaceRequest);
 			prepareDialog.dismissIfNotEqual(null);
 			if (replaceDialog.dialog == null) {
-				replaceDialog.install(replaceRequest, createReplace(replaceRequest, choiceDialog::onDismiss));
+				switch (Preferences.getMediaLoadingAction()) {
+					case REPLACE: {
+						callback.resolve(replaceRequest, DownloadService.ReplaceRequest.Action.REPLACE);
+						break;
+					}
+					case SKIP: {
+						callback.resolve(replaceRequest, DownloadService.ReplaceRequest.Action.SKIP);
+						break;
+					}
+					case KEEP_ALL: {
+						callback.resolve(replaceRequest, DownloadService.ReplaceRequest.Action.KEEP_ALL);
+						break;
+					}
+					default: {
+						replaceDialog.install(replaceRequest, createReplace(replaceRequest, choiceDialog::onDismiss));
+						break;
+					}
+				}
 			}
 		} else if (request instanceof DownloadService.PrepareRequest) {
 			DownloadService.PrepareRequest prepareRequest = (DownloadService.PrepareRequest) request;
