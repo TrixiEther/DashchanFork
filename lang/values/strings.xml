@@ -572,4 +572,6 @@
 	<string name="rename_to_jpg">Rename to .jpg</string>
 	<string name="use_internal_storage_for_cache">Use internal storage for cache</string>
 	<string name="use_internal_storage_for_cache__summary">Activate only if there are issues with cache</string>
+	<string name="standard_action_when_replacing_media">Standard action when replacing media</string>
+	<string name="manually">Manually</string>
 </resources>
