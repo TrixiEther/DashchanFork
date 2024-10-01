@@ -123,7 +123,7 @@ public class MediaFragment extends PreferenceFragment implements FragmentHandler
 					R.string.notify_when_download_is_completed, R.string.notify_when_download_is_completed__summary);
 		}
 		addList(Preferences.KEY_MEDIA_LOADING_ACTION, enumList(Preferences.MediaLoadingAction.values(), v -> v.value),
-				Preferences.DEFAULT_MEDIA_LOADING_ACTION.value, R.string.standard_action_when_replacing_media,
+				Preferences.DEFAULT_MEDIA_LOADING_ACTION.value, R.string.standard_action_when_loading_media,
 				enumResList(Preferences.MediaLoadingAction.values(), v -> v.titleResId));
 
 		addHeader(R.string.video_player);
