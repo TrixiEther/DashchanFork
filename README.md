@@ -36,6 +36,7 @@ Android client for imageboards.
 * Captcha timer support with automatic reload for imageboards where this is supported
 * Hiding the list of favorite threads
 * Some interface improvements, with the ability to border highlight your posts and see your posts and replies on the scrollbar
+* Additional functionality when attaching pictures (remembering settings, renaming a file)
 
 ## Screenshots
 
@@ -43,6 +44,8 @@ Android client for imageboards.
 <img src="metadata/en-US/images/phoneScreenshots/9.png" width="20%" />
 <img src="metadata/en-US/images/phoneScreenshots/10.png" width="20%" />
 <img src="metadata/en-US/images/phoneScreenshots/11.png" width="20%" />
+<img src="metadata/en-US/images/phoneScreenshots/12.png" width="20%" />
+<img src="metadata/en-US/images/phoneScreenshots/13.png" width="20%" />
 </p>
 
 ## Building Guide

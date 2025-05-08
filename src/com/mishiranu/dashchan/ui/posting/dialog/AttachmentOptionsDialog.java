@@ -33,6 +33,7 @@ import com.mishiranu.dashchan.content.storage.DraftsStorage;
 import com.mishiranu.dashchan.graphics.TransparentTileDrawable;
 import com.mishiranu.dashchan.ui.posting.AttachmentHolder;
 import com.mishiranu.dashchan.ui.posting.PostingDialogCallback;
+import com.mishiranu.dashchan.util.FilenameUtils;
 import com.mishiranu.dashchan.util.GraphicsUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
 import com.mishiranu.dashchan.widget.MaterialButton;
@@ -44,6 +45,8 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 	public static final String TAG = AttachmentOptionsDialog.class.getName();
 
 	private static final String EXTRA_ATTACHMENT_INDEX = "attachmentIndex";
+	private static final String FILENAME_BLOCKED_CHARACTERS = "\\/:*?\"<>|.";
+	private static final int FILENAME_MAX_CHARACTER_COUNT = 255;
 
 	private enum Type {UNIQUE_HASH, REMOVE_METADATA, REENCODE_IMAGE, REMOVE_FILE_NAME, SPOILER, RENAME}
 
@@ -166,26 +169,31 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 			listView.setDividerHeight(0);
 		}
 		ItemsAdapter adapter = new ItemsAdapter(activity, resId, items);
+
+		ViewGroup nameExtensionLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.dialog_filename, listView, false);
+		nameExtensionLayout.setOnClickListener(null);
+		listView.addFooterView(nameExtensionLayout);
 		listView.setAdapter(adapter);
+
 		for (int i = 0; i < optionItems.size(); i++) {
 			listView.setItemChecked(i, optionItems.get(i).checked);
 		}
 		listView.setOnItemClickListener(this);
 
-		ViewGroup nameExtensionLayout = (ViewGroup) LayoutInflater.from(activity).inflate(R.layout.dialog_filename, listView, false);
-		listView.addFooterView(nameExtensionLayout);
-		listView.setAdapter(adapter);
 		filenameEditText = nameExtensionLayout.findViewById(R.id.filename);
 		filenameEditText.setText(StringUtils.removeFileExtension(holder.newname));
 		InputFilter filter = (source, start, end, dest, dstart, dend) -> {
 			for (int i = start; i < end; i++) {
-				if (!Character.isLetterOrDigit(source.charAt(i)) || Character.isSpaceChar(source.charAt(i))) {
+				if (!FilenameUtils.isValidCharacter(source.charAt(i))) {
 					return "";
 				}
 			}
 			return null;
 		};
-		filenameEditText.setFilters(new InputFilter[]{filter});
+		filenameEditText.setFilters(new InputFilter[]{
+				filter,
+				new InputFilter.LengthFilter(FilenameUtils.getFilenameMaxCharacterCount())
+		});
 		filenameEditText.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -193,11 +201,11 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				holder.newname = s.toString() + "." + StringUtils.getFileExtension(holder.name);
 			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
+				holder.newname = s.toString() + "." + StringUtils.getFileExtension(holder.name);
 			}
 		});
 		extensionTextView = nameExtensionLayout.findViewById(R.id.extension);
@@ -299,7 +307,7 @@ public class AttachmentOptionsDialog extends DialogFragment implements AdapterVi
 		if (reencodeIndex != null) {
 			holder.reencoding = reencoding;
 			listView.setItemChecked(reencodeIndex, reencoding != null);
-			updateItemsEnabled((ItemsAdapter) listView.getAdapter(), holder);
+			updateItemsEnabled((ItemsAdapter) ((HeaderViewListAdapter) listView.getAdapter()).getWrappedAdapter(), holder);
 		}
 	}
 }

@@ -305,14 +305,19 @@ public class PagerUnit implements PagerInstance.Callback {
 		}
 		holder.playButton.setVisibility(View.GONE);
 		Uri uri = galleryItem.getFileUri(chan);
-		File cachedFile = cacheManager.getMediaFile(uri, true);
-		if (cachedFile == null) {
-			showError(holder, galleryInstance.context.getString(R.string.cache_is_unavailable));
-		} else if (isImage) {
-			imageUnit.applyImage(uri, cachedFile, reload);
-		} else if (isVideo) {
-			imageUnit.interrupt(true);
-			videoUnit.applyVideo(uri, cachedFile, reload);
+		try {
+			File cachedFile = cacheManager.getMediaFileOrThrow(uri, true);
+			if (cachedFile == null) {
+				showError(holder, "Cached file not found");
+			} else if (isImage) {
+				imageUnit.applyImage(uri, cachedFile, reload);
+			} else if (isVideo) {
+				imageUnit.interrupt(true);
+				videoUnit.applyVideo(uri, cachedFile, reload);
+			}
+		}
+		catch (CacheManager.CacheException e){
+			showError(holder, e.getMessage());
 		}
 	}
 

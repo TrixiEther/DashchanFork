@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -26,10 +28,12 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 
 	private static final String EXTRA_QUALITY = "quality";
 	private static final String EXTRA_REDUCE = "reduce";
+	private static final int JPEG_POSITION = 0;
 
 	private RadioGroup radioGroup;
 	private ViewFactory.SeekLayoutHolder qualityLayoutHolder;
 	private ViewFactory.SeekLayoutHolder reduceLayoutHolder;
+	private CheckBox jpegToJpg;
 
 	private static final String[] OPTIONS = {GraphicsUtils.Reencoding.FORMAT_JPEG.toUpperCase(Locale.US),
 			GraphicsUtils.Reencoding.FORMAT_PNG.toUpperCase(Locale.US)};
@@ -50,6 +54,10 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 		int padding = getResources().getDimensionPixelSize(R.dimen.dialog_padding_view);
 		ViewUtils.setNewPadding(qualityLayoutHolder.layout, null, 0, null, padding / 2);
 		ViewUtils.setNewPadding(reduceLayoutHolder.layout, null, 0, null, null);
+		jpegToJpg = new CheckBox(context);
+		ThemeEngine.applyStyle(jpegToJpg);
+		jpegToJpg.setText(R.string.rename_to_jpg);
+		jpegToJpg.setChecked(false);
 		radioGroup = new RadioGroup(context);
 		radioGroup.setOrientation(RadioGroup.VERTICAL);
 		radioGroup.setPadding(padding, padding, padding, padding / 2);
@@ -61,7 +69,10 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 			radioButton.setId(IDS[i]);
 			radioGroup.addView(radioButton);
 		}
-		radioGroup.check(IDS[0]);
+		radioGroup.check(IDS[JPEG_POSITION]);
+		FrameLayout jpegToJpgLayout = new FrameLayout(context);
+		jpegToJpgLayout.setPadding(padding, 0, 0, padding / 2);
+		jpegToJpgLayout.addView(jpegToJpg);
 		LinearLayout linearLayout = new LinearLayout(context);
 		linearLayout.setOrientation(LinearLayout.VERTICAL);
 		FrameLayout qualityLayout = new FrameLayout(context);
@@ -71,6 +82,8 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 		reduceLayout.setId(android.R.id.text2);
 		reduceLayout.addView(reduceLayoutHolder.layout);
 		linearLayout.addView(radioGroup, LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		linearLayout.addView(jpegToJpgLayout, LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
 		linearLayout.addView(qualityLayout, LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -97,7 +110,10 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 		int id = radioGroup.getCheckedRadioButtonId();
 		for (int i = 0; i < IDS.length; i++) {
 			if (IDS[i] == id) {
-				format = FORMATS[i];
+				if (i == JPEG_POSITION && jpegToJpg.isChecked())
+					format = GraphicsUtils.Reencoding.FORMAT_JPEG_ALTNAME;
+				else
+					format = FORMATS[i];
 				break;
 			}
 		}
@@ -115,5 +131,6 @@ public class ReencodingDialog extends DialogFragment implements DialogInterface.
 			}
 		}
 		qualityLayoutHolder.setEnabled(allowQuality);
+		jpegToJpg.setEnabled(checkedId == IDS[JPEG_POSITION]);
 	}
 }

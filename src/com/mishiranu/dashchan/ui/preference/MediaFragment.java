@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -25,10 +26,12 @@ import com.mishiranu.dashchan.content.async.TaskViewModel;
 import com.mishiranu.dashchan.media.VideoPlayer;
 import com.mishiranu.dashchan.ui.FragmentHandler;
 import com.mishiranu.dashchan.ui.InstanceDialog;
+import com.mishiranu.dashchan.ui.preference.core.CheckPreference;
 import com.mishiranu.dashchan.ui.preference.core.EditPreference;
 import com.mishiranu.dashchan.ui.preference.core.Preference;
 import com.mishiranu.dashchan.ui.preference.core.PreferenceFragment;
 import com.mishiranu.dashchan.util.ConcurrentUtils;
+import com.mishiranu.dashchan.util.FilenameUtils;
 import com.mishiranu.dashchan.util.IOUtils;
 import com.mishiranu.dashchan.util.ResourceUtils;
 import com.mishiranu.dashchan.util.SharedPreferences;
@@ -76,7 +79,16 @@ public class MediaFragment extends PreferenceFragment implements FragmentHandler
 				R.string.always_rename_files, 0);
 		addDependency(Preferences.KEY_ALWAYS_RENAME_FILENAME, Preferences.KEY_ALWAYS_REMOVE_FILENAME, false);
 		addEdit(Preferences.KEY_FILE_NEWNAME, Preferences.DEFAULT_FILE_NEWNAME, R.string.new_filename,
-				Preferences.DEFAULT_FILE_NEWNAME, InputType.TYPE_CLASS_TEXT);
+				Preferences.DEFAULT_FILE_NEWNAME, InputType.TYPE_CLASS_TEXT)
+				.addFilter((source, start, end, dest, dstart, dend) -> {
+					for (int i = start; i < end; i++) {
+						if (!FilenameUtils.isValidCharacter(source.charAt(i))) {
+							return "";
+						}
+					}
+					return null;
+				})
+				.addFilter(new InputFilter.LengthFilter(FilenameUtils.getFilenameMaxCharacterCount()));
 		addDependency(Preferences.KEY_FILE_NEWNAME, Preferences.KEY_ALWAYS_REMOVE_FILENAME, false);
 
 		addHeader(R.string.downloads);
@@ -159,6 +171,11 @@ public class MediaFragment extends PreferenceFragment implements FragmentHandler
 
 		addDependency(Preferences.KEY_SUBDIR_PATTERN, Preferences.KEY_DOWNLOAD_SUBDIR, false,
 				Preferences.DownloadSubdirMode.DISABLED.value);
+		CheckPreference useInternalStorageForCachePreference = addCheck(true, Preferences.KEY_USE_INTERNAL_STORAGE_FOR_CACHE, Preferences.DEFAULT_USE_INTERNAL_STORAGE_FOR_CACHE,R.string.use_internal_storage_for_cache, R.string.use_internal_storage_for_cache__summary);
+		useInternalStorageForCachePreference.setOnAfterChangeListener(p -> {
+			CacheManager.getInstance().rebuildCache();
+			clearCachePreference.invalidate();
+		});
 	}
 
 	@Override

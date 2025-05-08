@@ -1,0 +1,15 @@
+name: Move PR to code review
+
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  automatic_moving:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: alex-page/github-project-automation-plus@v0.8.3
+        with:
+          project: DashchanFork
+          column: Code Review
+          repo-token: ${{ secrets.DASHCHAN_REPO_TOKEN }}

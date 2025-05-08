@@ -1,0 +1,13 @@
+bug:
+- all:
+    - base-branch: ['3.1.4-experimental-*']
+    - head-branch: ['^[\D\d]+\/bug\/[\D\d]+','\/bug\/[\D\d]+','\/fix\/[\D\d]+','fix\/[\D\d]+']
+
+enhancement:
+- all:
+    - base-branch: ['3.1.4-experimental-*']
+    - head-branch: ['^[\D\d]+\/enhancement\/[\D\d]+']
+
+documentation:
+- any:
+    - changed-files: ['README.md']

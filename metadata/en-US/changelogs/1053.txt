@@ -1,0 +1,7 @@
+* Ability to set some chooses when attaching a picture by default (unique hash, clear metadata, reset file name)
+* Expanded the file posting settings interface, added the ability to rename the file
+* When renaming a file, a user-defined name can be selected from the settings
+* Added the ability to attach gif-images, pictures, stickers from the keyboard screen
+* Images can now be copied to the clipboard from the gallery
+* The basic behavior of Dashchan, which adds a space after a quote, can be changed in the settings, the space can be removed
+* Fixes of potential places in the code that could cause crashes

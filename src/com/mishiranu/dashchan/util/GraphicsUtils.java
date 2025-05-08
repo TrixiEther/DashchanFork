@@ -200,6 +200,7 @@ public class GraphicsUtils {
 
 	public static class Reencoding {
 		public static final String FORMAT_JPEG = "jpeg";
+		public static final String FORMAT_JPEG_ALTNAME = "jpg";
 		public static final String FORMAT_PNG = "png";
 
 		public final String format;
@@ -207,7 +208,8 @@ public class GraphicsUtils {
 		public final int reduce;
 
 		public Reencoding(String format, int quality, int reduce) {
-			this.format = FORMAT_JPEG.equals(format) || FORMAT_PNG.equals(format) ? format : FORMAT_JPEG;
+			this.format = (FORMAT_JPEG.equals(format) || FORMAT_JPEG_ALTNAME.equals(format))
+					|| FORMAT_PNG.equals(format) ? format : FORMAT_JPEG_ALTNAME.equals(format) ? format : FORMAT_JPEG;
 			this.quality = Math.max(1, Math.min(quality, 100));
 			this.reduce = Math.max(1, Math.min(reduce, 8));
 		}
@@ -277,12 +279,13 @@ public class GraphicsUtils {
 						newHeight = bitmap.getHeight();
 					}
 					boolean png = Reencoding.FORMAT_PNG.equals(reencoding.format);
+					boolean jpegToJpg = Reencoding.FORMAT_JPEG_ALTNAME.equals(reencoding.format);
 					ByteArrayOutputStream output = new ByteArrayOutputStream();
 					bitmap.compress(Reencoding.FORMAT_PNG.equals(reencoding.format) ? Bitmap.CompressFormat.PNG
 							: Bitmap.CompressFormat.JPEG, reencoding.quality, output);
 					decodedBytes = output.toByteArray();
 					int index = fileName.lastIndexOf('.');
-					newFileName = (index >= 0 ? fileName.substring(0, index) : fileName) + (png ? ".png" : ".jpeg");
+					newFileName = (index >= 0 ? fileName.substring(0, index) : fileName) + (png ? ".png" : jpegToJpg ? ".jpg" : ".jpeg");
 				} finally {
 					bitmap.recycle();
 				}

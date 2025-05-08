@@ -15,16 +15,19 @@ import com.mishiranu.dashchan.util.FlagUtils;
 import com.mishiranu.dashchan.util.SharedPreferences;
 import com.mishiranu.dashchan.util.ViewUtils;
 import com.mishiranu.dashchan.widget.SafePasteEditText;
+import java.util.ArrayList;
 
 public class EditPreference extends DialogPreference<String> {
 	public final CharSequence hint;
 	public final int inputType;
+	public ArrayList<InputFilter> customFilters;
 
 	public EditPreference(Context context, String key, String defaultValue,
 			CharSequence title, SummaryProvider<String> summaryProvider, CharSequence hint, int inputType) {
 		super(context, key, defaultValue, title, summaryProvider);
 		this.hint = hint;
 		this.inputType = inputType;
+		customFilters = new ArrayList<>();
 	}
 
 	@Override
@@ -49,7 +52,7 @@ public class EditPreference extends DialogPreference<String> {
 		Pair<View, LinearLayout> pair = createDialogLayout(builder.getContext());
 		SafePasteEditText editText = new SafePasteEditText(pair.second.getContext());
 		editText.setId(android.R.id.edit);
-		configureEdit(editText, hint, inputType, getValue());
+		configureEdit(editText, hint, inputType, getValue(), customFilters);
 		editText.requestFocus();
 		pair.second.addView(editText, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		return super.configureDialog(savedInstanceState, builder).setView(pair.first)
@@ -58,6 +61,10 @@ public class EditPreference extends DialogPreference<String> {
 	}
 
 	public static void configureEdit(EditText editText, CharSequence hint, int inputType, CharSequence text) {
+		configureEdit(editText, hint, inputType, text, null);
+	}
+
+	public static void configureEdit(EditText editText, CharSequence hint, int inputType, CharSequence text, ArrayList<InputFilter> filters) {
 		editText.setHint(hint);
 		boolean visiblePassword = FlagUtils.get(inputType, InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
 		inputType = FlagUtils.set(inputType, InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD, false);
@@ -68,8 +75,20 @@ public class EditPreference extends DialogPreference<String> {
 		if (FlagUtils.get(inputType, InputType.TYPE_CLASS_NUMBER)) {
 			editText.setFilters(new InputFilter[] {new InputFilter
 					.LengthFilter(Integer.toString(Integer.MAX_VALUE).length() - 1)});
+		} else if (filters != null && filters.size() > 0) {
+			InputFilter[] filtersArray = new InputFilter[filters.size()];
+			for (int i =0; i < filters.size(); i++)
+				filtersArray[i] = filters.get(i);
+			editText.setFilters(filtersArray);
 		}
 		editText.setText(text);
 		editText.setSelection(editText.getText().length());
 	}
+
+	public EditPreference addFilter(InputFilter filter) {
+		if (filter != null)
+			this.customFilters.add(filter);
+		return this;
+	}
+
 }

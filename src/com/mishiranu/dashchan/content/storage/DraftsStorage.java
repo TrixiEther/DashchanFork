@@ -5,7 +5,7 @@ import android.os.Parcelable;
 import android.os.SystemClock;
 import android.util.Pair;
 
-import com.mishiranu.dashchan.content.MainApplication;
+import com.mishiranu.dashchan.content.CacheManager;
 import com.mishiranu.dashchan.content.async.ReadCaptchaTask;
 import com.mishiranu.dashchan.content.model.FileHolder;
 import com.mishiranu.dashchan.ui.CaptchaForm;
@@ -191,7 +191,7 @@ public class DraftsStorage extends StorageManager.Storage<Pair<List<DraftsStorag
 	}
 
 	private static File getAttachmentDraftsDirectory() {
-		File directory = MainApplication.getInstance().getExternalCacheDir();
+		File directory = CacheManager.getInstance().getCacheDirectory();
 		if (directory != null) {
 			directory = new File(directory, "attachments");
 			if (directory.isDirectory() || directory.mkdirs()) {
