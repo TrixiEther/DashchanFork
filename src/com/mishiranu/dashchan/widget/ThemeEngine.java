@@ -88,6 +88,8 @@ public class ThemeEngine {
 		public final int tripcode;
 		public final int capcode;
 		public final int highlight;
+		public final int neuroslop;
+		public final int neuroslopQuote;
 		public final float colorGainFactor;
 
 		public final int controlNormal21;
@@ -96,7 +98,7 @@ public class ThemeEngine {
 		public Theme(Base base, String name, boolean builtIn, String json,
 				int window, int primary, int accent, int card, int thread, int post, int meta,
 				int spoiler, int link, int quote, int tripcode, int capcode, int highlight,
-				float colorGainFactor, int controlNormal21, float disabledAlpha21) {
+				float colorGainFactor, int controlNormal21, int neuroslop, int neuroslopQuote, float disabledAlpha21) {
 			this.base = base;
 			this.name = name;
 			this.builtIn = builtIn;
@@ -114,6 +116,8 @@ public class ThemeEngine {
 			this.tripcode = tripcode;
 			this.capcode = capcode;
 			this.highlight = highlight;
+			this.neuroslop = neuroslop;
+			this.neuroslopQuote = neuroslopQuote;
 			this.colorGainFactor = colorGainFactor;
 			this.controlNormal21 = controlNormal21;
 			this.disabledAlpha21 = disabledAlpha21;
@@ -153,6 +157,8 @@ public class ThemeEngine {
 				case "tripcode": return tripcode;
 				case "capcode": return capcode;
 				case "highlight": return highlight;
+				case "neuroslop": return neuroslop;
+				case "neuroslopQuote": return neuroslopQuote;
 				default: throw new IllegalArgumentException();
 			}
 		}
@@ -935,6 +941,10 @@ public class ThemeEngine {
 					b -> b.tripcode, R.attr.colorTextCapcode));
 			map.put("highlight", new Value((b, c) -> b.highlight = c, b -> b.highlight,
 					null, R.attr.colorPostHighlight));
+			map.put("neuroslop", new Value((b, c) -> b.neuroslop = c, b -> b.neuroslop,
+					null, R.attr.colorPostNeuroslop));
+			map.put("neuroslopQuote", new Value((b, c) -> b.neuroslopQuote = c, b -> b.neuroslopQuote,
+					null, R.attr.colorPostQuoteNeuroslop));
 			MAP = Collections.unmodifiableMap(map);
 		}
 
@@ -949,6 +959,8 @@ public class ThemeEngine {
 		Integer quote;
 		Integer tripcode;
 		Integer capcode;
+		Integer neuroslop;
+		Integer neuroslopQuote;
 		Integer highlight;
 
 		public Theme create(Theme.Base base, String name, boolean builtIn, String json, Context context) {
@@ -988,7 +1000,7 @@ public class ThemeEngine {
 			return new Theme(base, name, builtIn, json,
 					window, primary, accent, card, thread, post, meta,
 					spoiler, link, quote, tripcode, capcode, highlight, colorGainFactor,
-					controlNormal21, disabledAlpha21);
+					controlNormal21, neuroslop, neuroslopQuote, disabledAlpha21);
 		}
 
 		private boolean transform(Value value) {

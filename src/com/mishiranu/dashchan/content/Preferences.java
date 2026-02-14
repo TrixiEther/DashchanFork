@@ -210,6 +210,18 @@ public class Preferences {
 		return getEnumValue(key, NetworkMode.values(), defaultValue, NetworkMode.VALUE_PROVIDER);
 	}
 
+	public static final ChanKey KEY_HIDE_AI_POSTS = new ChanKey("hide_ai_posts");
+	public static final boolean DEFAULT_HIDE_AI_POSTS = false;
+
+	public static boolean isHideAIPosts(Chan chan) {
+		if (chan.configuration.getOption(ChanConfiguration.OPTION_AI_POSTING)) {
+			return PREFERENCES.getBoolean(KEY_HIDE_AI_POSTS.bind(chan.name),
+					DEFAULT_HIDE_AI_POSTS);
+		} else {
+			return false;
+		}
+	}
+
 	public static final String KEY_ACTIVE_SCROLLBAR = "active_scrollbar";
 	public static final boolean DEFAULT_ACTIVE_SCROLLBAR = true;
 

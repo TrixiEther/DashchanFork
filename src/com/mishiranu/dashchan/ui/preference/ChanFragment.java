@@ -185,6 +185,7 @@ public class ChanFragment extends PreferenceFragment implements FragmentHandler.
 		boolean localMode = chan.configuration.getOption(ChanConfiguration.OPTION_LOCAL_MODE) || domains.isEmpty();
 		boolean httpsConfigurable = chan.locator.isHttpsConfigurable();
 		boolean canReadThreadPartially = chan.configuration.getOption(ChanConfiguration.OPTION_READ_THREAD_PARTIALLY);
+		boolean aiAgentsPostingSupport = chan.configuration.getOption(ChanConfiguration.OPTION_AI_POSTING);
 		if (!localMode || httpsConfigurable || canReadThreadPartially) {
 			addHeader(R.string.connection);
 		}
@@ -239,6 +240,12 @@ public class ChanFragment extends PreferenceFragment implements FragmentHandler.
 			addCheck(true, Preferences.KEY_PARTIAL_THREAD_LOADING.bind(chanName),
 					Preferences.DEFAULT_PARTIAL_THREAD_LOADING, R.string.partial_thread_loading,
 					R.string.partial_thread_loading__summary);
+		}
+
+		if (aiAgentsPostingSupport) {
+			addHeader(R.string.ai_settings);
+			addCheck(true, Preferences.KEY_HIDE_AI_POSTS.bind(chanName),
+					Preferences.DEFAULT_HIDE_AI_POSTS, R.string.hide_ai_posts, 0);
 		}
 
 		addHeader(R.string.additional);

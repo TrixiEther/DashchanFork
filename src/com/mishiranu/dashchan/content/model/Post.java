@@ -146,6 +146,7 @@ public final class Post implements Comparable<Post> {
 		int ORIGINAL_POSTER = 0x00000080;
 		int DEFAULT_NAME = 0x00000100;
 		int BUMP_LIMIT_REACHED = 0x00000200;
+		int AI_GENERATED = 0x00000400;
 	}
 
 	public final PostNumber number;
@@ -165,9 +166,9 @@ public final class Post implements Comparable<Post> {
 	public final Vote vote;
 
 	private Post(PostNumber number, boolean deleted, int flags, long timestamp,
-			String subject, String comment, String commentMarkup,
-			String name, String identifier, String tripcode, String capcode, String email,
-			List<Attachment> attachments, List<Icon> icons, Vote vote) {
+                 String subject, String comment, String commentMarkup,
+                 String name, String identifier, String tripcode, String capcode, String email,
+                 List<Attachment> attachments, List<Icon> icons, Vote vote) {
 		this.number = number;
 		this.deleted = deleted;
 		this.flags = flags;
@@ -183,7 +184,7 @@ public final class Post implements Comparable<Post> {
 		this.attachments = attachments;
 		this.icons = icons;
 		this.vote = vote;
-	}
+    }
 
 	public boolean isSage() {
 		return FlagUtils.get(flags, Flags.SAGE);
@@ -223,6 +224,10 @@ public final class Post implements Comparable<Post> {
 
 	public boolean isBumpLimitReached() {
 		return FlagUtils.get(flags, Flags.BUMP_LIMIT_REACHED);
+	}
+
+	public boolean isAiGenerated() {
+		return FlagUtils.get(flags, Flags.AI_GENERATED);
 	}
 
 	@Override
@@ -580,6 +585,7 @@ public final class Post implements Comparable<Post> {
 		public List<Attachment> attachments;
 		public List<Icon> icons;
 		public Vote vote;
+		public boolean aiGenerated;
 
 		public boolean isSage() {
 			return FlagUtils.get(flags, Flags.SAGE);
@@ -661,8 +667,8 @@ public final class Post implements Comparable<Post> {
 			flags = FlagUtils.set(flags, Flags.BUMP_LIMIT_REACHED, bumpLimitReached);
 		}
 
-		public void setLikes(int likes) {
-
+		public void setAIGenerated(boolean aiGenerated) {
+			flags = FlagUtils.set(flags, Flags.AI_GENERATED, aiGenerated);
 		}
 
 		public Post build(boolean deleted) {

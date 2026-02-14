@@ -341,6 +341,12 @@ public final class Post implements Comparable<Post> {
 	}
 
 	@Public
+	public Post setAIGenerated(boolean aiGenerated) {
+		builder.builder.setAIGenerated(aiGenerated);
+		return this;
+	}
+
+	@Public
 	@Override
 	public int compareTo(Post another) {
 		return builder.builder.number.compareTo(another.builder.builder.number);
@@ -397,6 +403,7 @@ public final class Post implements Comparable<Post> {
 				builder.builder.vote = postVote;
 			}
 		}
+
 		return builder.builder.build(false);
 	}
 }

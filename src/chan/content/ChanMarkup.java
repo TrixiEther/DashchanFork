@@ -1,15 +1,30 @@
 package chan.content;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.text.SpannableString;
+import android.text.style.DrawableMarginSpan;
+import android.text.style.LeadingMarginSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.UnderlineSpan;
 import android.util.Pair;
+import android.view.ContextThemeWrapper;
+
+import androidx.core.content.ContextCompat;
+
 import chan.annotation.Extendable;
 import chan.annotation.Public;
 import chan.text.CommentEditor;
 import chan.util.StringUtils;
+
+import com.mishiranu.dashchan.R;
+import com.mishiranu.dashchan.content.MainApplication;
 import com.mishiranu.dashchan.content.model.PostNumber;
+import com.mishiranu.dashchan.graphics.ColorScheme;
 import com.mishiranu.dashchan.text.HtmlParser;
 import com.mishiranu.dashchan.text.style.GainedColorSpan;
 import com.mishiranu.dashchan.text.style.HeadingSpan;
@@ -18,12 +33,16 @@ import com.mishiranu.dashchan.text.style.LinkSpan;
 import com.mishiranu.dashchan.text.style.LinkSuffixSpan;
 import com.mishiranu.dashchan.text.style.MediumSpan;
 import com.mishiranu.dashchan.text.style.MonospaceSpan;
+import com.mishiranu.dashchan.text.style.NeuroslopSpan;
 import com.mishiranu.dashchan.text.style.OverlineSpan;
 import com.mishiranu.dashchan.text.style.QuoteSpan;
 import com.mishiranu.dashchan.text.style.ScriptSpan;
 import com.mishiranu.dashchan.text.style.SpoilerSpan;
 import com.mishiranu.dashchan.text.style.TabulationSpan;
 import com.mishiranu.dashchan.text.style.UnderlyingSpoilerSpan;
+import com.mishiranu.dashchan.util.GraphicsUtils;
+import com.mishiranu.dashchan.widget.ThemeEngine;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -74,6 +93,7 @@ public class ChanMarkup implements Chan.Linked {
 	@Public public static final int TAG_CODE = 0x00000200;
 	@Public public static final int TAG_ASCII_ART = 0x00000400;
 	@Public public static final int TAG_HEADING = 0x00000800;
+	@Public public static final int TAG_AI = 0x00001600;
 
 	public static final int TAG_SPECIAL_UNUSED = 0x01000000;
 	public static final int TAG_SPECIAL_LINK = 0x01000001;
@@ -647,7 +667,8 @@ public class ChanMarkup implements Chan.Linked {
 			return 0;
 		}
 
-		@Override
+		@SuppressLint("ResourceAsColor")
+        @Override
 		public CharSequence transformBuilder(HtmlParser<MarkupExtra, ?, ?> parser, StringBuilder builder) {
 			SpannableString spannable = new SpannableString(builder);
 			for (int i = 0; i < spannable.length(); i++) {
@@ -725,10 +746,20 @@ public class ChanMarkup implements Chan.Linked {
 							span = new LinkSuffixSpan(linkSuffixHolder.suffix, linkSuffixHolder.postNumber);
 							break;
 						}
+						case TAG_AI: {
+							span = new NeuroslopSpan();
+							break;
+						}
 					}
 					if (span != null) {
 						spannable.setSpan(span, styledItem.start, styledItem.end,
 								SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE);
+						if (styledItem.tag == TAG_AI) {
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+								spannable.setSpan(new LeadingMarginSpan.Standard(30), styledItem.start, styledItem.end,
+										SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE);
+							}
+						}
 					}
 				}
 			}
