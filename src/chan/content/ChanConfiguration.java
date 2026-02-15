@@ -77,6 +77,7 @@ public class ChanConfiguration implements Chan.Linked {
 	@Public public static final String OPTION_ALLOW_CAPTCHA_PASS = "allow_captcha_pass";
 	@Public public static final String OPTION_ALLOW_USER_AUTHORIZATION = "allow_user_authorization";
 	@Public public static final String OPTION_LOCAL_MODE = "local_mode";
+	@Public public static final String OPTION_AI_POSTING = "ai_posting";
 
 	private static final String KEY_TITLE = "title";
 	private static final String KEY_DESCRIPTION = "description";

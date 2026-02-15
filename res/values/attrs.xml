@@ -29,6 +29,8 @@
 	<attr name="colorPostHighlight" format="color|reference" />
 	<attr name="colorPostMarkUserPost" format="color|reference" />
 	<attr name="colorPostMarkReply" format="color|reference" />
+	<attr name="colorPostNeuroslop" format="color|reference" />
+	<attr name="colorPostQuoteNeuroslop" format="color|reference" />
 
 	<attr name="colorGainFactor" format="float" />
 

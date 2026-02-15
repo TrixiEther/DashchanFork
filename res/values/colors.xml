@@ -29,6 +29,7 @@
 	<color name="color_highlight_light">#000000</color>
 	<color name="color_post_mark_user_post_light">#3A833C</color>
 	<color name="color_post_mark_reply_light">#E41A0C</color>
+	<color name="color_post_neuroslop_light">#C4C6CE</color>
 
 	<color name="background_popup_dark">#ff303030</color>
 	<color name="background_window_dark">#ff181818</color>
@@ -53,5 +54,6 @@
 	<color name="color_highlight_dark">#ffffff</color>
 	<color name="color_post_mark_user_post_dark">#4CAE4F</color>
 	<color name="color_post_mark_reply_dark">#F76E64</color>
+	<color name="color_post_neuroslop_dark">#424948</color>
 
 </resources>

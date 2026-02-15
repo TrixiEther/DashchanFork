@@ -151,6 +151,7 @@
 		<item name="colorPostHighlight">@color/color_highlight_light</item>
 		<item name="colorPostMarkUserPost">@color/color_post_mark_user_post_light</item>
 		<item name="colorPostMarkReply">@color/color_post_mark_reply_light</item>
+		<item name="colorPostNeuroslop">@color/color_post_neuroslop_light</item>
 
 		<item name="colorGainFactor">0.75</item>
 
@@ -183,6 +184,7 @@
 		<item name="colorTextClickableToast">@color/color_text_clickable_toast_dark</item>
 		<item name="colorTextLikesCount">@color/color_text_likes_count_dark</item>
 		<item name="colorTextDislikesCount">@color/color_text_dislikes_count_dark</item>
+		<item name="colorPostNeuroslop">@color/color_post_neuroslop_dark</item>
 
 		<item name="colorPostHighlight">@color/color_highlight_dark</item>
 		<item name="colorPostMarkUserPost">@color/color_post_mark_user_post_dark</item>

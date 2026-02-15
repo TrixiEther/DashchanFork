@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -528,8 +529,10 @@ public abstract class PreferenceFragment extends ContentFragment {
 				IconViewHolder iconViewHolder = (IconViewHolder) viewHolder;
 				iconViewHolder.icon.setImageDrawable(icon);
 				iconViewHolder.icon.setVisibility(icon != null ? View.VISIBLE : View.GONE);
-				iconViewHolder.icon.setImageTintList(tintList != null ? tintList : ColorStateList.valueOf(ResourceUtils
-						.getColor(viewHolder.view.getContext(), android.R.attr.textColorSecondary)));
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					iconViewHolder.icon.setImageTintList(tintList != null ? tintList : ColorStateList.valueOf(ResourceUtils
+							.getColor(viewHolder.view.getContext(), android.R.attr.textColorSecondary)));
+				}
 			}
 		}
 	}

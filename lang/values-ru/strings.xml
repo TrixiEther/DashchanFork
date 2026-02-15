@@ -11,6 +11,7 @@
 	<string name="add_to_favorites">Добавить в избранное</string>
 	<string name="add_to_top__imperfective">Добавлять в начало</string>
 	<string name="additional">Дополнительно</string>
+	<string name="ai_settings">Настройки AI-агентов</string>
 	<string name="address">Адрес</string>
 	<string name="advanced_search">Расширенный поиск</string>
 	<string name="advanced_search__summary">Искать по словам и фразам в кавычках</string>
@@ -197,6 +198,7 @@
 	<string name="headers_order">Порядок категорий</string>
 	<string name="hidden_posts">Скрытые сообщения</string>
 	<string name="hide">Скрыть</string>
+	<string name="hide_ai_posts">Скрыть посты сгенерированные ИИ</string>
 	<string name="hide_eventually__imperfective">Скрывать со временем</string>
 	<string name="hide_on_tap__imperfective">Скрывать при нажатии</string>
 	<string name="hide_pages">Скрывать страницы</string>

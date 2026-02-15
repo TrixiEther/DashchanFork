@@ -13,6 +13,7 @@
 	<string name="add_to_favorites">Add to favorites</string>
 	<string name="add_to_top__imperfective">Add to the top</string>
 	<string name="additional">Additional</string>
+	<string name="ai_settings">AI-agents settings</string>
 	<string name="address">Address</string>
 	<string name="advanced_search">Advanced search</string>
 	<string name="advanced_search__summary">Search by words or quoted phrases</string>
@@ -197,6 +198,7 @@
 	<string name="headers_order">Headers order</string>
 	<string name="hidden_posts">Hidden posts</string>
 	<string name="hide">Hide</string>
+	<string name="hide_ai_posts">Hide AI-generated posts</string>
 	<string name="hide_eventually__imperfective">Hide eventually</string>
 	<string name="hide_on_tap__imperfective">Hide on tap</string>
 	<string name="hide_pages">Hide pages</string>

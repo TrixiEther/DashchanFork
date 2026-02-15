@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.content;
 
 import android.content.Context;
 import chan.content.Chan;
+import chan.content.ChanConfiguration;
 import chan.text.JsonSerial;
 import chan.text.ParseException;
 import chan.util.StringUtils;
@@ -57,6 +58,9 @@ public class HidePerformer {
 		if (message == null) {
 			message = checkHiddenGlobalAutohide(chan, postItem);
 		}
+		if (message == null) {
+			message = checkHiddenIfAIGenerated(chan, postItem);
+		}
 		return message != null ? autohidePrefix + message : null;
 	}
 
@@ -99,6 +103,13 @@ public class HidePerformer {
 					}
 				}
 			}
+		}
+		return null;
+	}
+
+	private String checkHiddenIfAIGenerated(Chan chan, PostItem postItem) {
+		if (chan.configuration.getOption(ChanConfiguration.OPTION_AI_POSTING) && Preferences.isHideAIPosts(chan) && postItem.getPost().isAiGenerated()) {
+			return "Is AI-generated!";
 		}
 		return null;
 	}

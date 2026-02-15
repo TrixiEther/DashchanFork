@@ -11,14 +11,15 @@ import com.mishiranu.dashchan.widget.ThemeEngine;
 public class ColorScheme {
 	public ColorScheme(Context context, ThemeEngine.Theme theme) {
 		this(context, theme.window, theme.spoiler, theme.link, theme.quote, theme.tripcode, theme.capcode, theme.highlight,
-				theme.colorGainFactor);
+				theme.neuroslop, theme.colorGainFactor);
 	}
 
 	private ColorScheme(Context context, int windowBackgroundColor, int spoilerBackgroundColor,
-			int linkColor, int quoteColor, int tripcodeColor, int capcodeColor, int userPostHighlightColor, float colorGainFactor) {
+			int linkColor, int quoteColor, int tripcodeColor, int capcodeColor, int userPostHighlightColor, int neuroslop, float colorGainFactor) {
 		this.windowBackgroundColor = windowBackgroundColor;
 		this.tripcodeColor = tripcodeColor;
 		this.capcodeColor = capcodeColor;
+		this.neuroslopColor = neuroslop;
 		this.linkColor = linkColor;
 		this.quoteColor = quoteColor;
 		this.spoilerBackgroundColor = spoilerBackgroundColor;
@@ -44,6 +45,7 @@ public class ColorScheme {
 
 	public final int tripcodeColor;
 	public final int capcodeColor;
+	public final int neuroslopColor;
 
 	public final int highlightTextColor;
 	public final int highlightBackgroundColor;
