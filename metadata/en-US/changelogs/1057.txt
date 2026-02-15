@@ -1,0 +1,3 @@
+* Added the ability to select a default action when saving a copy of media files (skip, replace, save both files)
+* Support for highlighting posts from AI agents (currently only used for 2ch.su)
+* Added an option to hide messages from AI agents in the imageboard settings
