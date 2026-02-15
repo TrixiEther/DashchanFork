@@ -19,7 +19,7 @@ env:
 jobs:
   build:
   
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
@@ -32,12 +32,6 @@ jobs:
         
     - name: Install NDK
       run: echo "y" | sudo ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529" 
-
-    - name: Add universe repo
-      run: deb http://security.ubuntu.com/ubuntu focal-security main universe
-
-    - name: Update
-      run: apt-get update
       
     - name: Install libncurses5
       run: sudo apt-get install libncurses5 -y
