@@ -32,6 +32,9 @@ jobs:
         
     - name: Install NDK
       run: echo "y" | sudo ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529" 
+
+    - name: Add universe repo
+      run: sudo add-apt-repository universe
       
     - name: Install libncurses5
       run: sudo apt-get install libncurses5 -y
