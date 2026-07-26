@@ -1319,6 +1319,14 @@ void init(JNIEnv * env, jlong pointer, jobject nativeBridge, jboolean seekAnyFra
 		SLresult result;
 		int success = 0;
 		int channels = player->av.audioContext->channels;
+		// HE-AACv2 may initially report its mono core here, while decoded frames
+		// contain parametric-stereo PCM. Keep the OpenSL format equal to the
+		// resampler output; otherwise its audio clock runs at half speed.
+		if (player->av.audioContext->codec_id == AV_CODEC_ID_AAC &&
+				player->av.audioContext->profile == FF_PROFILE_AAC_HE_V2 && channels == 1) {
+			channels = 2;
+			player->audio.resampleChannels = AV_CH_FRONT_LEFT | AV_CH_FRONT_RIGHT;
+		}
 		if (channels != 1 && channels != 2) {
 			channels = 2;
 			player->audio.resampleChannels = AV_CH_FRONT_LEFT | AV_CH_FRONT_RIGHT;
