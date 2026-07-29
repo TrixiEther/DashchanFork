@@ -1,0 +1,1 @@
+* Fix slow video playback with HE-AACv2 audio
